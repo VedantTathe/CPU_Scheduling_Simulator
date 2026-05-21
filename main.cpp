@@ -1,31 +1,42 @@
 #include <iostream>
-#include <string>
+#include "Process.h"
+#include "Scheduler.h"
+#include "Metrics.h"
+#include "Utils.h"
 
 int main() {
-    std::cout << "╔════════════════════════════════════════════════════════╗\n";
-    std::cout << "║       CPU SCHEDULING SIMULATOR - Phase 1 Initialized   ║\n";
-    std::cout << "╚════════════════════════════════════════════════════════╝\n\n";
+    Utils::printHeader("CPU SCHEDULING SIMULATOR - Architecture Test");
 
-    std::cout << "Project Structure:\n";
-    std::cout << "  ✓ src/          - Source files\n";
-    std::cout << "  ✓ include/      - Header files\n";
-    std::cout << "  ✓ algorithms/   - Algorithm implementations\n";
-    std::cout << "  ✓ tests/        - Unit tests\n";
-    std::cout << "  ✓ docs/         - Documentation\n";
-    std::cout << "  ✓ data/         - Input/output data\n\n";
+    std::cout << "✓ Testing Process class..." << std::endl;
+    Process p1(1, 0, 5, 2);
+    Process p2(2, 1, 3, 1);
+    Process p3(3, 2, 8, 3);
 
-    std::cout << "Next Steps:\n";
-    std::cout << "  1. Design core scheduler classes\n";
-    std::cout << "  2. Implement Process data structure\n";
-    std::cout << "  3. Create first scheduling algorithm (FCFS)\n";
-    std::cout << "  4. Add metrics calculation\n";
-    std::cout << "  5. Implement visualization\n\n";
+    std::cout << "Process Created:" << std::endl;
+    std::cout << "  PID: " << p1.pid 
+              << " | Arrival: " << p1.arrivalTime 
+              << " | Burst: " << p1.burstTime 
+              << " | Priority: " << p1.priority << std::endl;
+    
+    std::cout << "\n✓ Process class working correctly!" << std::endl;
 
-    std::cout << "Technology Stack:\n";
-    std::cout << "  • C++17\n";
-    std::cout << "  • CMake 3.10+\n";
-    std::cout << "  • STL\n";
-    std::cout << "  • GitHub Actions (CI/CD)\n\n";
+    std::cout << "\n✓ Testing Metrics structure..." << std::endl;
+    Metrics m;
+    m.averageWaitingTime = 5.5;
+    m.averageTurnaroundTime = 13.5;
+    m.cpuUtilization = 85.0;
+    std::cout << "Metrics Created:" << std::endl;
+    Utils::printMetrics(m);
+
+    std::cout << "\n✓ Testing Utility functions..." << std::endl;
+    Utils::printHeader("Sample Process Table");
+    std::vector<Process> testProcesses = {p1, p2, p3};
+    Utils::printProcessTable(testProcesses);
+
+    std::cout << "\n" << "═══════════════════════════════════════════════════════════════════════════════" << std::endl;
+    std::cout << "Architecture Foundation Complete!" << std::endl;
+    std::cout << "═══════════════════════════════════════════════════════════════════════════════" << std::endl;
+    std::cout << "\nNext Phase: Implement scheduling algorithms (FCFS, SJF, Priority, Round Robin)" << std::endl;
 
     return 0;
 }

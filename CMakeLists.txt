@@ -21,6 +21,9 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # Add source files
 set(SOURCES
     main.cpp
+    src/Process.cpp
+    src/Scheduler.cpp
+    src/Utils.cpp
 )
 
 # Create executable
