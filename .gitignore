@@ -1,0 +1,62 @@
+# Build directories
+build/
+cmake-build-*/
+out/
+
+# Executables
+*.exe
+*.out
+*.app
+*.dll
+*.so
+*.dylib
+
+# Object files
+*.o
+*.obj
+*.ko
+*.elf
+*.lo
+*.la
+
+# Static libraries
+*.a
+*.lib
+
+# IDE-specific directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# CMake cache
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# OS-specific
+Thumbs.db
+.directory
+
+# Data files (keep docs but ignore generated data)
+data/*.csv
+data/*.txt
+!data/README.md
+
+# Test outputs
+test_results/
