@@ -1,0 +1,30 @@
+#include "Process.h"
+
+Process::Process()
+    : pid(0), arrivalTime(0), burstTime(0), priority(0),
+      remainingTime(0), completionTime(0), waitingTime(0),
+      turnaroundTime(0), responseTime(-1) {}
+
+Process::Process(int id, int arrival, int burst, int prio)
+    : pid(id), arrivalTime(arrival), burstTime(burst), priority(prio),
+      remainingTime(burst), completionTime(0), waitingTime(0),
+      turnaroundTime(0), responseTime(-1) {}
+
+void Process::reset() {
+    remainingTime = burstTime;
+    completionTime = 0;
+    waitingTime = 0;
+    turnaroundTime = 0;
+    responseTime = -1;  // -1 indicates not yet started
+}
+
+void Process::display() const {
+    std::cout << "PID: " << pid 
+              << " | Arrival: " << arrivalTime 
+              << " | Burst: " << burstTime 
+              << " | Priority: " << priority << std::endl;
+}
+
+bool Process::isCompleted() const {
+    return remainingTime == 0;
+}
