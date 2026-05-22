@@ -3,6 +3,7 @@
 #include "../include/Scheduler.h"
 #include <vector>
 #include <string>
+#include <map>
 
 /**
  * @class AlgorithmComparison
@@ -24,6 +25,17 @@ public:
     };
 
     /**
+     * @struct AlgorithmRank
+     * @brief Ranking information for an algorithm across multiple metrics.
+     */
+    struct AlgorithmRank {
+        std::string algorithmName;
+        int overallScore;
+        std::map<std::string, int> metricRanks;
+        int totalMetricsWon;
+    };
+
+    /**
      * @brief Add a scheduler for comparison.
      * @param scheduler Scheduler to test
      * @param processes Vector of processes to use
@@ -39,6 +51,23 @@ public:
      * @brief Display comparison results in formatted table.
      */
     void displayComparison() const;
+
+    /**
+     * @brief Display professional comparison dashboard with analysis.
+     */
+    void displayProfessionalDashboard() const;
+
+    /**
+     * @brief Get algorithm rankings based on performance.
+     * @return Vector of AlgorithmRank sorted by overall score
+     */
+    std::vector<AlgorithmRank> getRankings() const;
+
+    /**
+     * @brief Get best algorithm recommendation with explanation.
+     * @return Pair of (algorithm name, explanation)
+     */
+    std::pair<std::string, std::string> getRecommendation() const;
 
     /**
      * @brief Get results for specific algorithm.
@@ -78,4 +107,51 @@ private:
      * @return true if "lower is better", false if "higher is better"
      */
     bool isLowerBetter(const std::string& metric) const;
+
+    /**
+     * @brief Calculate rankings for all algorithms based on performance.
+     * @return Vector of AlgorithmRank sorted by overall score
+     */
+    std::vector<AlgorithmRank> calculateRankings() const;
+
+    /**
+     * @brief Generate best algorithm recommendation with explanation.
+     * @return Pair of (algorithm name, explanation string)
+     */
+    std::pair<std::string, std::string> generateRecommendation() const;
+
+    /**
+     * @brief Print professional dashboard header and title.
+     */
+    void printDashboardHeader() const;
+
+    /**
+     * @brief Print formatted metrics comparison table for dashboard.
+     */
+    void printMetricsTable() const;
+
+    /**
+     * @brief Print algorithm rankings section.
+     */
+    void printRankingsSection() const;
+
+    /**
+     * @brief Print recommendation section.
+     */
+    void printRecommendationSection() const;
+
+    /**
+     * @brief Get best performing algorithm for a specific metric.
+     * @param metric The metric name (e.g., "Waiting Time")
+     * @return Name of best algorithm for that metric
+     */
+    std::string getBestAlgorithmForMetric(const std::string& metric) const;
+
+    /**
+     * @brief Format metric value for display with precision.
+     * @param value The metric value
+     * @param precision Decimal places to show
+     * @return Formatted string representation
+     */
+    std::string formatMetricValue(double value, int precision = 2) const;
 };

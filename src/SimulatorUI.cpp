@@ -372,7 +372,7 @@ void SimulatorUI::runAllAlgorithmsComparison() {
     comparison.addScheduler(&sjf, processes);
     comparison.addScheduler(&priority, processes);
     comparison.runAllSchedulers();
-    comparison.displayComparison();
+    comparison.displayProfessionalDashboard();
 
     std::cout << "✓ Comparison complete." << std::endl;
 }
