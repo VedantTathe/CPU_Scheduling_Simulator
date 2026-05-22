@@ -5,24 +5,41 @@
 #include <vector>
 #include <string>
 
+// Console color codes (optional ANSI coloring)
+namespace ConsoleColor {
+    constexpr const char* RESET   = "\033[0m";
+    constexpr const char* BOLD    = "\033[1m";
+    constexpr const char* GREEN   = "\033[32m";
+    constexpr const char* YELLOW  = "\033[33m";
+    constexpr const char* CYAN    = "\033[36m";
+    constexpr const char* MAGENTA = "\033[35m";
+    constexpr const char* HEADER  = "\033[36m";
+}
+
 /**
  * @namespace Utils
- * @brief Utility functions for the CPU Scheduling Simulator.
+ * @brief Utility functions for the CPU Scheduling Simulator with enhanced visualization.
  */
 namespace Utils {
 
     /**
      * @brief Print a horizontal divider line.
      * @param width Width of the divider line
-     * @param char Character to use for the line
+     * @param c Character to use for the line
      */
     void printDivider(int width = 80, char c = '-');
 
     /**
-     * @brief Print a formatted header.
+     * @brief Print a formatted header with visual styling.
      * @param title Title of the section
      */
     void printHeader(const std::string& title);
+
+    /**
+     * @brief Print a section header (lighter formatting).
+     * @param title Title of the subsection
+     */
+    void printSectionHeader(const std::string& title);
 
     /**
      * @brief Print processes in a formatted table.
@@ -62,10 +79,35 @@ namespace Utils {
     std::string formatTime(int time);
 
     /**
-     * @brief Print a Gantt chart in text format.
+     * @brief Print an enhanced Gantt chart in professional ASCII format.
      * @param processes Vector of completed processes
      * @param totalTime Total execution time
      */
     void printGanttChart(const std::vector<Process>& processes, int totalTime);
+
+    /**
+     * @brief Print professional Gantt chart with improved formatting and idle visualization.
+     * @param processes Vector of completed processes in execution order
+     * @param totalTime Total execution time
+     */
+    void printEnhancedGanttChart(const std::vector<Process>& processes, int totalTime);
+
+    /**
+     * @brief Print a success message with formatting.
+     * @param message Message text
+     */
+    void printSuccess(const std::string& message);
+
+    /**
+     * @brief Print a warning message with formatting.
+     * @param message Message text
+     */
+    void printWarning(const std::string& message);
+
+    /**
+     * @brief Print information with formatting.
+     * @param message Message text
+     */
+    void printInfo(const std::string& message);
 
 } // namespace Utils

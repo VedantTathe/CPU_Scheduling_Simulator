@@ -116,26 +116,13 @@ void PriorityScheduler::drawGanttChart() const {
                   return a->completionTime < b->completionTime;
               });
 
-    // Print process blocks
-    std::cout << " ";
+    // Convert to non-const vector for enhanced chart display
+    std::vector<Process> sortedProcesses;
     for (const auto* p : ordered) {
-        std::cout << std::setw(8) << std::right << ("| P" + std::to_string(p->pid));
+        sortedProcesses.push_back(*p);
     }
-    std::cout << " |" << std::endl;
 
-    // Print timeline (completion times)
-    std::cout << std::setw(2) << "0";
-    for (const auto* p : ordered) {
-        std::cout << std::setw(8) << std::right << p->completionTime;
-    }
-    std::cout << std::endl;
-
-    // Print bottom border
-    std::cout << " ";
-    for (size_t i = 0; i < ordered.size(); ++i) {
-        std::cout << std::string(9, '-');
-    }
-    std::cout << std::endl;
+    Utils::printEnhancedGanttChart(sortedProcesses, totalExecutionTime);
 }
 
 void PriorityScheduler::printProcessTable() const {

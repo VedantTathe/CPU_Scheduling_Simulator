@@ -72,27 +72,7 @@ void FCFSScheduler::drawGanttChart() const {
     }
 
     Utils::printHeader("Gantt Chart");
-
-    // Print process blocks
-    std::cout << " ";
-    for (const auto& p : processes) {
-        std::cout << std::setw(8) << std::right << ("| P" + std::to_string(p.pid));
-    }
-    std::cout << " |" << std::endl;
-
-    // Print timeline (completion times)
-    std::cout << std::setw(2) << "0";
-    for (const auto& p : processes) {
-        std::cout << std::setw(8) << std::right << p.completionTime;
-    }
-    std::cout << std::endl;
-
-    // Print bottom border
-    std::cout << " ";
-    for (size_t i = 0; i < processes.size(); ++i) {
-        std::cout << std::string(9, '-');
-    }
-    std::cout << std::endl;
+    Utils::printEnhancedGanttChart(processes, totalExecutionTime);
 }
 
 void FCFSScheduler::printProcessTable() const {

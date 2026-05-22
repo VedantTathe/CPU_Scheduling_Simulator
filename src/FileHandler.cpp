@@ -29,26 +29,32 @@ std::vector<Process> FileHandler::loadProcessesFromFile(const std::string& filen
     int processCount = 0;
     int lineNumber = 0;
 
-    // Read number of processes from first line
-    if (std::getline(file, line)) {
+    // Read number of processes (skip comments and empty lines)
+    bool foundCount = false;
+    while (std::getline(file, line)) {
         lineNumber++;
-        std::istringstream iss(line);
         
-        // Skip leading whitespace and check if line is empty
+        // Skip leading whitespace
         line.erase(0, line.find_first_not_of(" \t\r\n"));
-        if (line.empty()) {
-            lastError = "Error on line " + std::to_string(lineNumber) + ": Expected process count, got empty line.";
-            throw std::runtime_error(lastError);
+        
+        // Skip empty lines and comments
+        if (line.empty() || line[0] == '#') {
+            continue;
         }
 
+        std::istringstream iss(line);
         iss >> processCount;
         if (iss.fail() || processCount <= 0) {
             lastError = "Error on line " + std::to_string(lineNumber) + 
-                       ": First line must be a positive integer (process count).";
+                       ": First non-comment line must be a positive integer (process count).";
             throw std::runtime_error(lastError);
         }
-    } else {
-        lastError = "Error: File is empty. Expected process count on first line.";
+        foundCount = true;
+        break;
+    }
+
+    if (!foundCount) {
+        lastError = "Error: File is empty or contains only comments. Expected process count.";
         throw std::runtime_error(lastError);
     }
 
