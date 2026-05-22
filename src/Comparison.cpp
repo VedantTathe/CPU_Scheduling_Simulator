@@ -265,17 +265,49 @@ std::vector<AlgorithmComparison::AlgorithmRank> AlgorithmComparison::calculateRa
     };
 
     for (const auto& metric : metrics) {
-        std::string bestAlgo = getBestAlgorithmForMetric(metric);
+        // Helper lambda to get metric value
+        auto getMetricValue = [&](const AlgorithmResult& result) -> double {
+            if (metric == "Avg Waiting Time") return result.metrics.averageWaitingTime;
+            if (metric == "Avg Turnaround Time") return result.metrics.averageTurnaroundTime;
+            if (metric == "Avg Response Time") return result.metrics.averageResponseTime;
+            if (metric == "CPU Utilization %") return result.metrics.cpuUtilization;
+            if (metric == "Throughput") return result.metrics.throughput;
+            return 0.0;
+        };
 
-        // Find which result corresponds to best algorithm
-        for (auto& rank : rankings) {
-            if (rank.algorithmName == bestAlgo) {
-                rank.overallScore++;
-                rank.totalMetricsWon++;
-                rank.metricRanks[metric] = 1;
+        bool lowerIsBetter = (metric != "Throughput");
+        double bestValue = getMetricValue(results[0]);
+
+        // Find the best value across all algorithms
+        for (const auto& result : results) {
+            double currentValue = getMetricValue(result);
+            if (lowerIsBetter) {
+                if (currentValue < bestValue) bestValue = currentValue;
             } else {
-                // Other algorithms get secondary ranks (simplified)
-                rank.metricRanks[metric] = 2;
+                if (currentValue > bestValue) bestValue = currentValue;
+            }
+        }
+
+        // Award points to ALL algorithms that tie for best
+        for (auto& rank : rankings) {
+            // Find corresponding result
+            for (const auto& result : results) {
+                if (result.algorithmName == rank.algorithmName) {
+                    double currentValue = getMetricValue(result);
+                    
+                    // Use small epsilon for floating point comparison
+                    const double epsilon = 1e-6;
+                    bool isBest = std::abs(currentValue - bestValue) < epsilon;
+                    
+                    if (isBest) {
+                        rank.overallScore++;
+                        rank.totalMetricsWon++;
+                        rank.metricRanks[metric] = 1;
+                    } else {
+                        rank.metricRanks[metric] = 2;
+                    }
+                    break;
+                }
             }
         }
     }
