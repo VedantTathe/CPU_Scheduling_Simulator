@@ -53,9 +53,11 @@ __pycache__/
 Thumbs.db
 .directory
 
-# Data files (keep docs but ignore generated data)
+# Data files (keep sample datasets but ignore generated data)
 data/*.csv
 data/*.txt
+!data/sample*.txt
+!data/*_test.txt
 !data/README.md
 
 # Test outputs
