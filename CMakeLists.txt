@@ -24,6 +24,7 @@ set(SOURCES
     src/Process.cpp
     src/Scheduler.cpp
     src/Utils.cpp
+    algorithms/FCFS.cpp
 )
 
 # Create executable
