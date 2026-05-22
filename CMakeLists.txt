@@ -27,6 +27,7 @@ set(SOURCES
     src/Comparison.cpp
     algorithms/FCFS.cpp
     algorithms/SJF.cpp
+    algorithms/PriorityScheduler.cpp
 )
 
 # Create executable
