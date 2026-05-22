@@ -103,7 +103,7 @@ void AlgorithmComparison::printComparisonTable() const {
         double sjfWait = results[1].metrics.averageWaitingTime;
 
         if (sjfWait < fcfsWait) {
-            std::cout << "  ✓ SJF has " << std::fixed << std::setprecision(2) 
+            std::cout << "  [+] SJF has " << std::fixed << std::setprecision(2) 
                       << ((fcfsWait - sjfWait) / fcfsWait * 100.0) 
                       << "% lower average waiting time than FCFS" << std::endl;
         }
@@ -112,7 +112,7 @@ void AlgorithmComparison::printComparisonTable() const {
         double sjfTurnaround = results[1].metrics.averageTurnaroundTime;
 
         if (sjfTurnaround < fcfsTurnaround) {
-            std::cout << "  ✓ SJF has " << std::fixed << std::setprecision(2) 
+            std::cout << "  [+] SJF has " << std::fixed << std::setprecision(2) 
                       << ((fcfsTurnaround - sjfTurnaround) / fcfsTurnaround * 100.0) 
                       << "% lower average turnaround time than FCFS" << std::endl;
         }
@@ -236,7 +236,7 @@ void AlgorithmComparison::printRecommendationSection() const {
 
     auto [bestAlgo, explanation] = generateRecommendation();
 
-    std::cout << "✓ Best Overall Algorithm: " << bestAlgo << std::endl;
+    std::cout << "[BEST] Best Overall Algorithm: " << bestAlgo << std::endl;
     std::cout << std::endl;
     std::cout << "Reason:" << std::endl;
     std::cout << explanation;
@@ -301,20 +301,20 @@ std::pair<std::string, std::string> AlgorithmComparison::generateRecommendation(
 
     // Build explanation
     std::string explanation;
-    explanation += "  • Best performance in " + std::to_string(best.totalMetricsWon) + " metrics\n";
-    explanation += "  • Superior algorithm for this workload\n";
+    explanation += "  - Best performance in " + std::to_string(best.totalMetricsWon) + " metrics\n";
+    explanation += "  - Superior algorithm for this workload\n";
 
     // Add specific strengths
     if (best.algorithmName == "First Come First Served (FCFS)") {
-        explanation += "  • Simple, predictable scheduling\n";
-        explanation += "  • Good for sequential, long-running tasks\n";
+        explanation += "  - Simple, predictable scheduling\n";
+        explanation += "  - Good for sequential, long-running tasks\n";
     } else if (best.algorithmName == "Shortest Job First (SJF)") {
-        explanation += "  • Minimizes waiting time\n";
-        explanation += "  • Excellent for varying burst times\n";
-        explanation += "  • Best overall fairness and responsiveness\n";
+        explanation += "  - Minimizes waiting time\n";
+        explanation += "  - Excellent for varying burst times\n";
+        explanation += "  - Best overall fairness and responsiveness\n";
     } else if (best.algorithmName == "Priority Scheduling") {
-        explanation += "  • Respects priority requirements\n";
-        explanation += "  • Best for mixed-priority workloads\n";
+        explanation += "  - Respects priority requirements\n";
+        explanation += "  - Best for mixed-priority workloads\n";
     }
 
     return {best.algorithmName, explanation};

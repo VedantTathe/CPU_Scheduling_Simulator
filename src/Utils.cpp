@@ -25,7 +25,7 @@ void printHeader(const std::string& title) {
 
 void printSectionHeader(const std::string& title) {
     std::cout << std::endl;
-    std::cout << "▶ " << title << std::endl;
+    std::cout << ">> " << title << std::endl;
     printDivider(78, '-');
 }
 
@@ -58,7 +58,7 @@ void printProcessTable(const std::vector<Process>& processes) {
 void printMetrics(const Metrics& metrics) {
     std::cout << std::fixed << std::setprecision(2);
     std::cout << std::endl;
-    std::cout << "─── Performance Metrics ───" << std::endl;
+    std::cout << "--- Performance Metrics ---" << std::endl;
     std::cout << "  Average Waiting Time:       " << metrics.averageWaitingTime << " time units" << std::endl;
     std::cout << "  Average Turnaround Time:    " << metrics.averageTurnaroundTime << " time units" << std::endl;
     std::cout << "  Average Response Time:      " << metrics.averageResponseTime << " time units" << std::endl;
@@ -181,7 +181,7 @@ void printEnhancedGanttChart(const std::vector<Process>& processes, int totalTim
     if (!idleSegments.empty()) {
         printInfo("CPU was idle during:");
         for (const auto& idle : idleSegments) {
-            std::cout << "  → Time " << idle.first << " to " << (idle.first + idle.second) 
+            std::cout << "  -> Time " << idle.first << " to " << (idle.first + idle.second) 
                       << " (duration: " << idle.second << " units)" << std::endl;
         }
         std::cout << std::endl;
@@ -196,15 +196,15 @@ void printEnhancedGanttChart(const std::vector<Process>& processes, int totalTim
 }
 
 void printSuccess(const std::string& message) {
-    std::cout << "✓ " << message << std::endl;
+    std::cout << "[OK] " << message << std::endl;
 }
 
 void printWarning(const std::string& message) {
-    std::cout << "⚠ " << message << std::endl;
+    std::cout << "[!] " << message << std::endl;
 }
 
 void printInfo(const std::string& message) {
-    std::cout << "ℹ " << message << std::endl;
+    std::cout << "[i] " << message << std::endl;
 }
 
 } // namespace Utils

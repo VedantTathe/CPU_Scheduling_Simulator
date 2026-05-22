@@ -158,10 +158,10 @@ void SimulatorUI::inputProcesses() {
         int priority = std::stoi(prioInput);
 
         processes.emplace_back(pid, arrival, burst, priority);
-        std::cout << "✓ Process " << pid << " added successfully." << std::endl;
+        std::cout << "[OK] Process " << pid << " added successfully." << std::endl;
     }
 
-    std::cout << "\n✓ Total processes added: " << processes.size() << std::endl;
+    std::cout << "\n[OK] Total processes added: " << processes.size() << std::endl;
 }
 
 void SimulatorUI::loadProcessesFromFile() {
@@ -188,7 +188,7 @@ void SimulatorUI::loadProcessesFromFile() {
         processes.clear();
         processes = loadedProcesses;
         
-        std::cout << "\n✓ Successfully loaded " << processes.size() << " processes from '" << filename << "'." << std::endl;
+        std::cout << "\n[OK] Successfully loaded " << processes.size() << " processes from '" << filename << "'." << std::endl;
         
         // Display preview of loaded processes
         std::cout << "\n" << "Loaded Processes:" << std::endl;
@@ -327,7 +327,7 @@ void SimulatorUI::executeSingleAlgorithm(int choice) {
     // Display results
     scheduler->displayResults();
 
-    std::cout << "\n✓ Simulation completed for " << algorithmName << std::endl;
+    std::cout << "\n[OK] Simulation completed for " << algorithmName << std::endl;
 
     delete scheduler;
 }
@@ -374,7 +374,7 @@ void SimulatorUI::runAllAlgorithmsComparison() {
     comparison.runAllSchedulers();
     comparison.displayProfessionalDashboard();
 
-    std::cout << "✓ Comparison complete." << std::endl;
+    std::cout << "[OK] Comparison complete." << std::endl;
 }
 
 void SimulatorUI::clearAllProcesses() {
@@ -392,7 +392,7 @@ void SimulatorUI::clearAllProcesses() {
 
     if (response == "Y" || response == "y") {
         processes.clear();
-        std::cout << "✓ All processes cleared." << std::endl;
+        std::cout << "[OK] All processes cleared." << std::endl;
     } else {
         std::cout << "Cancelled." << std::endl;
     }
@@ -401,14 +401,14 @@ void SimulatorUI::clearAllProcesses() {
 void SimulatorUI::printWelcome() const {
     clearScreen();
     std::cout << "\n";
-    std::cout << "╔════════════════════════════════════════════════════════════════════════════╗\n";
-    std::cout << "║                                                                            ║\n";
-    std::cout << "║              CPU SCHEDULING SIMULATOR - Interactive Version               ║\n";
-    std::cout << "║                                                                            ║\n";
-    std::cout << "║  Algorithms: FCFS | SJF | Priority Scheduling                            ║\n";
-    std::cout << "║  Features: Process Input | Simulation | Comparison | Metrics             ║\n";
-    std::cout << "║                                                                            ║\n";
-    std::cout << "╚════════════════════════════════════════════════════════════════════════════╝\n";
+    std::cout << "==============================================================================\n";
+    std::cout << "|                                                                            |\n";
+    std::cout << "|              CPU SCHEDULING SIMULATOR - Interactive Version               |\n";
+    std::cout << "|                                                                            |\n";
+    std::cout << "|  Algorithms: FCFS | SJF | Priority Scheduling                            |\n";
+    std::cout << "|  Features: Process Input | Simulation | Comparison | Metrics             |\n";
+    std::cout << "|                                                                            |\n";
+    std::cout << "==============================================================================\n";
     std::cout << "\n";
     waitForUser();
 }
@@ -416,12 +416,12 @@ void SimulatorUI::printWelcome() const {
 void SimulatorUI::printGoodbye() const {
     clearScreen();
     std::cout << "\n";
-    std::cout << "╔════════════════════════════════════════════════════════════════════════════╗\n";
-    std::cout << "║                                                                            ║\n";
-    std::cout << "║                   Thank you for using CPU Scheduling Simulator!           ║\n";
-    std::cout << "║                         Goodbye! 👋                                        ║\n";
-    std::cout << "║                                                                            ║\n";
-    std::cout << "╚════════════════════════════════════════════════════════════════════════════╝\n";
+    std::cout << "==============================================================================\n";
+    std::cout << "|                                                                            |\n";
+    std::cout << "|                   Thank you for using CPU Scheduling Simulator!           |\n";
+    std::cout << "|                         Goodbye! Bye!                                      |\n";
+    std::cout << "|                                                                            |\n";
+    std::cout << "==============================================================================\n";
     std::cout << "\n";
 }
 
