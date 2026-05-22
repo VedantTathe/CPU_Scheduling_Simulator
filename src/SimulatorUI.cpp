@@ -402,11 +402,15 @@ void SimulatorUI::clearAllProcesses() {
 }
 
 void SimulatorUI::promptClearAfterSimulation() {
-    std::cout << "\nWould you like to clear processes and start over? (Y/N): ";
+    std::cout << "\nClear processes and start over? (Y/N, default: Y): ";
     std::string response;
     std::getline(std::cin, response);
 
-    if (response == "Y" || response == "y") {
+    // Only skip clearing if user explicitly types 'N' or 'n'
+    if (response == "N" || response == "n") {
+        std::cout << "Keeping processes." << std::endl;
+    } else {
+        // Clear by default (Y, y, or just pressing Enter)
         processes.clear();
         std::cout << "[OK] Processes cleared. Ready for new simulation." << std::endl;
     }
