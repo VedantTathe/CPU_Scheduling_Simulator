@@ -3,6 +3,7 @@
 #include "Process.h"
 #include "Scheduler.h"
 #include "Comparison.h"
+#include "FileHandler.h"
 #include <vector>
 #include <string>
 
@@ -37,10 +38,11 @@ private:
     // Main menu options
     enum MenuChoice {
         INPUT_PROCESSES = 1,
-        RUN_SIMULATION = 2,
-        VIEW_PROCESSES = 3,
-        CLEAR_PROCESSES = 4,
-        EXIT = 5
+        LOAD_FROM_FILE = 2,
+        RUN_SIMULATION = 3,
+        VIEW_PROCESSES = 4,
+        CLEAR_PROCESSES = 5,
+        EXIT = 6
     };
 
     // Algorithm selection
@@ -61,6 +63,11 @@ private:
      * @brief Get input for processes from user.
      */
     void inputProcesses();
+
+    /**
+     * @brief Load processes from a file.
+     */
+    void loadProcessesFromFile();
 
     /**
      * @brief Display current processes.

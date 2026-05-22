@@ -26,6 +26,10 @@ void SimulatorUI::run() {
                 inputProcesses();
                 break;
 
+            case LOAD_FROM_FILE:
+                loadProcessesFromFile();
+                break;
+
             case RUN_SIMULATION:
                 if (processes.empty()) {
                     std::cout << "\n❌ ERROR: No processes to schedule. Please input processes first.\n" << std::endl;
@@ -63,20 +67,21 @@ int SimulatorUI::displayMainMenu() {
     Utils::printHeader("CPU SCHEDULING SIMULATOR - Main Menu");
 
     std::cout << "Current Processes: " << processes.size() << std::endl;
-    std::cout << "\n1. Input Processes" << std::endl;
-    std::cout << "2. Run Simulation" << std::endl;
-    std::cout << "3. View Processes" << std::endl;
-    std::cout << "4. Clear Processes" << std::endl;
-    std::cout << "5. Exit" << std::endl;
+    std::cout << "\n1. Input Processes Manually" << std::endl;
+    std::cout << "2. Load Processes from File" << std::endl;
+    std::cout << "3. Run Simulation" << std::endl;
+    std::cout << "4. View Processes" << std::endl;
+    std::cout << "5. Clear Processes" << std::endl;
+    std::cout << "6. Exit" << std::endl;
 
-    std::cout << "\nSelect option (1-5): ";
+    std::cout << "\nSelect option (1-6): ";
 
     std::string input;
     std::getline(std::cin, input);
 
     if (isValidInteger(input)) {
         int choice = std::stoi(input);
-        if (choice >= 1 && choice <= 5) {
+        if (choice >= 1 && choice <= 6) {
             return choice;
         }
     }
@@ -157,6 +162,56 @@ void SimulatorUI::inputProcesses() {
     }
 
     std::cout << "\n✓ Total processes added: " << processes.size() << std::endl;
+}
+
+void SimulatorUI::loadProcessesFromFile() {
+    clearScreen();
+    Utils::printHeader("Load Processes from File");
+
+    std::cout << "Enter filename (or full path): ";
+    std::string filename;
+    std::getline(std::cin, filename);
+
+    // Trim whitespace from input
+    filename.erase(0, filename.find_first_not_of(" \t\r\n"));
+    filename.erase(filename.find_last_not_of(" \t\r\n") + 1);
+
+    if (filename.empty()) {
+        std::cout << "❌ Filename cannot be empty." << std::endl;
+        return;
+    }
+
+    try {
+        std::vector<Process> loadedProcesses = FileHandler::loadProcessesFromFile(filename);
+        
+        // Clear existing processes and add new ones
+        processes.clear();
+        processes = loadedProcesses;
+        
+        std::cout << "\n✓ Successfully loaded " << processes.size() << " processes from '" << filename << "'." << std::endl;
+        
+        // Display preview of loaded processes
+        std::cout << "\n" << "Loaded Processes:" << std::endl;
+        std::cout << std::left
+                  << std::setw(6) << "PID"
+                  << std::setw(12) << "Arrival"
+                  << std::setw(10) << "Burst"
+                  << std::setw(12) << "Priority"
+                  << std::endl;
+        Utils::printDivider(40, '-');
+        
+        for (const auto& p : processes) {
+            std::cout << std::left
+                      << std::setw(6) << p.pid
+                      << std::setw(12) << p.arrivalTime
+                      << std::setw(10) << p.burstTime
+                      << std::setw(12) << p.priority
+                      << std::endl;
+        }
+        
+    } catch (const std::runtime_error& e) {
+        std::cout << "\n❌ " << e.what() << std::endl;
+    }
 }
 
 void SimulatorUI::viewProcesses() const {
