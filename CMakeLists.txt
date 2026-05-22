@@ -27,6 +27,7 @@ set(SOURCES
     src/Comparison.cpp
     src/SimulatorUI.cpp
     src/FileHandler.cpp
+    src/ReportGenerator.cpp
     algorithms/FCFS.cpp
     algorithms/SJF.cpp
     algorithms/PriorityScheduler.cpp
