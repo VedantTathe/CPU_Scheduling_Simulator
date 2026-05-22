@@ -1,4 +1,5 @@
 #include "Scheduler.h"
+#include "Utils.h"
 #include <algorithm>
 #include <numeric>
 
@@ -17,6 +18,7 @@ void Scheduler::clearProcesses() {
     processes.clear();
     metrics.reset();
     totalExecutionTime = 0;
+    transitionEvents.clear();
 }
 
 int Scheduler::getProcessCount() const {
@@ -33,6 +35,7 @@ void Scheduler::reset() {
     }
     metrics.reset();
     totalExecutionTime = 0;
+    transitionEvents.clear();
 }
 
 Process* Scheduler::findProcessByPid(int pid) {
@@ -102,4 +105,25 @@ void Scheduler::computeAverageMetrics() {
     metrics.throughput = (totalExecutionTime > 0)
         ? (static_cast<double>(processes.size()) / totalExecutionTime)
         : 0.0;
+}
+
+void Scheduler::recordTransition(int time, int pid, ProcessState oldState, ProcessState newState) {
+    transitionEvents.push_back({time, pid, oldState, newState});
+}
+
+void Scheduler::printTransitionTrace() const {
+    if (transitionEvents.empty()) {
+        std::cout << "No state transitions recorded." << std::endl;
+        return;
+    }
+
+    // Copy and sort events chronologically
+    auto events = transitionEvents;
+    std::sort(events.begin(), events.end());
+
+    Utils::printSectionHeader(getAlgorithmName() + " - Process State Transitions Trace");
+    for (const auto& event : events) {
+        Utils::printStateTransition(event.time, event.pid, event.oldState, event.newState);
+    }
+    std::cout << std::endl;
 }

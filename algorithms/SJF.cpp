@@ -34,6 +34,12 @@ void SJFScheduler::run() {
         return;
     }
 
+    // Record initial ready transitions at each process's arrival time
+    for (auto& process : processes) {
+        recordTransition(process.arrivalTime, process.pid, ProcessState::WAITING, ProcessState::READY);
+        process.state = ProcessState::READY;
+    }
+
     std::vector<int> scheduled;  // Track which processes have been scheduled
     int currentTime = 0;
 
@@ -62,11 +68,19 @@ void SJFScheduler::run() {
             int startTime = currentTime;
             int completionTime = startTime + nextProcess->burstTime;
 
+            // Transition from READY to RUNNING
+            recordTransition(startTime, nextProcess->pid, ProcessState::READY, ProcessState::RUNNING);
+            nextProcess->state = ProcessState::RUNNING;
+
             nextProcess->completionTime = completionTime;
             nextProcess->responseTime = startTime - nextProcess->arrivalTime;
             nextProcess->waitingTime = startTime - nextProcess->arrivalTime;
             nextProcess->turnaroundTime = completionTime - nextProcess->arrivalTime;
             nextProcess->remainingTime = 0;
+
+            // Transition from RUNNING to COMPLETED
+            recordTransition(completionTime, nextProcess->pid, ProcessState::RUNNING, ProcessState::COMPLETED);
+            nextProcess->state = ProcessState::COMPLETED;
 
             scheduled.push_back(nextProcess->pid);
             currentTime = completionTime;
@@ -86,6 +100,7 @@ void SJFScheduler::calculateMetrics() {
 
 void SJFScheduler::displayResults() const {
     Utils::printHeader(getAlgorithmName());
+    printTransitionTrace();
     printProcessTable();
     std::cout << std::endl;
     drawGanttChart();

@@ -110,4 +110,20 @@ namespace Utils {
      */
     void printInfo(const std::string& message);
 
+    /**
+     * @brief Convert ProcessState enum value to a human-readable string.
+     * @param state The ProcessState value
+     * @return String representation of the state
+     */
+    std::string toString(ProcessState state);
+
+    /**
+     * @brief Print a process state transition with timestamp and pid.
+     * @param time The simulation time at transition
+     * @param pid The process ID
+     * @param oldState The state before transition
+     * @param newState The state after transition
+     */
+    void printStateTransition(int time, int pid, ProcessState oldState, ProcessState newState);
+
 } // namespace Utils

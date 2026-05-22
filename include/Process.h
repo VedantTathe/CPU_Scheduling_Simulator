@@ -3,6 +3,17 @@
 #include <iostream>
 
 /**
+ * @enum ProcessState
+ * @brief Represents the current execution state of a process in an operating system context.
+ */
+enum class ProcessState {
+    READY,
+    RUNNING,
+    WAITING,
+    COMPLETED
+};
+
+/**
  * @class Process
  * @brief Represents a process in the CPU scheduling simulator.
  * 
@@ -21,6 +32,7 @@ public:
     int waitingTime;           // Total time spent waiting
     int turnaroundTime;        // Total time from arrival to completion
     int responseTime;          // Time from arrival to first execution
+    ProcessState state;        // Current state of the process
 
     /**
      * @brief Default constructor.

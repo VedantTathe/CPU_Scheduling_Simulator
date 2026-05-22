@@ -62,3 +62,6 @@ data/*.txt
 
 # Test outputs
 test_results/
+
+# Archives
+*.zip

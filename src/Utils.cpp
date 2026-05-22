@@ -207,4 +207,40 @@ void printInfo(const std::string& message) {
     std::cout << "[i] " << message << std::endl;
 }
 
+std::string toString(ProcessState state) {
+    switch (state) {
+        case ProcessState::READY:     return "READY";
+        case ProcessState::RUNNING:   return "RUNNING";
+        case ProcessState::WAITING:   return "WAITING";
+        case ProcessState::COMPLETED: return "COMPLETED";
+        default:                      return "UNKNOWN";
+    }
+}
+
+void printStateTransition(int time, int pid, ProcessState oldState, ProcessState newState) {
+    std::string oldStr = toString(oldState);
+    std::string newStr = toString(newState);
+
+    // Pick colors for each state
+    auto getStateColor = [](ProcessState s) {
+        switch (s) {
+            case ProcessState::READY:     return ConsoleColor::YELLOW;
+            case ProcessState::RUNNING:   return ConsoleColor::GREEN;
+            case ProcessState::WAITING:   return ConsoleColor::CYAN;
+            case ProcessState::COMPLETED: return ConsoleColor::MAGENTA;
+            default:                      return ConsoleColor::RESET;
+        }
+    };
+
+    std::string oldColor = getStateColor(oldState);
+    std::string newColor = getStateColor(newState);
+
+    std::cout << ConsoleColor::BOLD << "[Time " << std::setw(3) << time << "] " << ConsoleColor::RESET
+              << "Process " << ConsoleColor::BOLD << pid << ConsoleColor::RESET << ": "
+              << oldColor << oldStr << ConsoleColor::RESET
+              << " -> "
+              << newColor << ConsoleColor::BOLD << newStr << ConsoleColor::RESET
+              << std::endl;
+}
+
 } // namespace Utils

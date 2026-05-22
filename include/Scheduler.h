@@ -90,10 +90,53 @@ public:
      */
     void reset();
 
+    /**
+     * @struct StateTransitionEvent
+     * @brief Represents a process state transition event for chronological logging.
+     */
+    struct StateTransitionEvent {
+        int time;
+        int pid;
+        ProcessState oldState;
+        ProcessState newState;
+
+        bool operator<(const StateTransitionEvent& other) const {
+            if (time != other.time) {
+                return time < other.time;
+            }
+            // If times are equal, COMPLETED comes first (freeing CPU), then READY (arriving), then RUNNING (starting CPU)
+            auto getStatePriority = [](ProcessState s) {
+                switch (s) {
+                    case ProcessState::COMPLETED: return 0;
+                    case ProcessState::READY:     return 1;
+                    case ProcessState::RUNNING:   return 2;
+                    case ProcessState::WAITING:   return 3;
+                    default:                      return 4;
+                }
+            };
+            return getStatePriority(newState) < getStatePriority(other.newState);
+        }
+    };
+
+    /**
+     * @brief Print the chronological state transition trace.
+     */
+    void printTransitionTrace() const;
+
 protected:
     std::vector<Process> processes;        // Queue of processes to schedule
     Metrics metrics;                       // Calculated performance metrics
     int totalExecutionTime;                // Total time to complete all processes
+    std::vector<StateTransitionEvent> transitionEvents; // Recorded state transitions
+
+    /**
+     * @brief Record a state transition event.
+     * @param time The simulation time at transition
+     * @param pid The process ID
+     * @param oldState The state before transition
+     * @param newState The state after transition
+     */
+    void recordTransition(int time, int pid, ProcessState oldState, ProcessState newState);
 
     /**
      * @brief Protected constructor.

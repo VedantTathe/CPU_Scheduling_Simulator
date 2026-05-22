@@ -16,6 +16,12 @@ void FCFSScheduler::run() {
     // Sort processes by arrival time
     sortByArrivalTime();
 
+    // Record initial ready transitions at each process's arrival time
+    for (auto& process : processes) {
+        recordTransition(process.arrivalTime, process.pid, ProcessState::WAITING, ProcessState::READY);
+        process.state = ProcessState::READY;
+    }
+
     int currentTime = 0;
 
     // Execute each process in FCFS order
@@ -29,12 +35,20 @@ void FCFSScheduler::run() {
         int startTime = currentTime;
         int completionTime = startTime + process.burstTime;
 
+        // Transition from READY to RUNNING
+        recordTransition(startTime, process.pid, ProcessState::READY, ProcessState::RUNNING);
+        process.state = ProcessState::RUNNING;
+
         // Update process metrics
         process.completionTime = completionTime;
         process.responseTime = startTime - process.arrivalTime;
         process.waitingTime = startTime - process.arrivalTime;
         process.turnaroundTime = completionTime - process.arrivalTime;
         process.remainingTime = 0;  // Process completed
+
+        // Transition from RUNNING to COMPLETED
+        recordTransition(completionTime, process.pid, ProcessState::RUNNING, ProcessState::COMPLETED);
+        process.state = ProcessState::COMPLETED;
 
         // Move timeline forward
         currentTime = completionTime;
@@ -55,6 +69,7 @@ void FCFSScheduler::calculateMetrics() {
 
 void FCFSScheduler::displayResults() const {
     Utils::printHeader(getAlgorithmName());
+    printTransitionTrace();
     printProcessTable();
     std::cout << std::endl;
     drawGanttChart();
