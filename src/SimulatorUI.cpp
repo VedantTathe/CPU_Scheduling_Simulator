@@ -330,6 +330,9 @@ void SimulatorUI::executeSingleAlgorithm(int choice) {
     std::cout << "\n[OK] Simulation completed for " << algorithmName << std::endl;
 
     delete scheduler;
+
+    // Ask if user wants to clear processes after simulation
+    promptClearAfterSimulation();
 }
 
 void SimulatorUI::runAllAlgorithmsComparison() {
@@ -375,6 +378,9 @@ void SimulatorUI::runAllAlgorithmsComparison() {
     comparison.displayProfessionalDashboard();
 
     std::cout << "[OK] Comparison complete." << std::endl;
+
+    // Ask if user wants to clear processes after simulation
+    promptClearAfterSimulation();
 }
 
 void SimulatorUI::clearAllProcesses() {
@@ -396,6 +402,19 @@ void SimulatorUI::clearAllProcesses() {
     } else {
         std::cout << "Cancelled." << std::endl;
     }
+}
+
+void SimulatorUI::promptClearAfterSimulation() {
+    std::cout << "\nWould you like to clear processes and start over? (Y/N): ";
+    std::string response;
+    std::getline(std::cin, response);
+
+    if (response == "Y" || response == "y") {
+        processes.clear();
+        std::cout << "[OK] Processes cleared. Ready for new simulation." << std::endl;
+    }
+
+    waitForUser();
 }
 
 void SimulatorUI::printWelcome() const {

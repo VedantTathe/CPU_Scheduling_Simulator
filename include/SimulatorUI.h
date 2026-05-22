@@ -102,6 +102,11 @@ private:
     void clearAllProcesses();
 
     /**
+     * @brief Ask user if they want to clear processes after simulation.
+     */
+    void promptClearAfterSimulation();
+
+    /**
      * @brief Print welcome message.
      */
     void printWelcome() const;
