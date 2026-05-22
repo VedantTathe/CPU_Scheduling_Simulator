@@ -3,35 +3,68 @@
 #include "Scheduler.h"
 #include "Metrics.h"
 #include "Utils.h"
+#include "Comparison.h"
 #include "algorithms/FCFS.h"
+#include "algorithms/SJF.h"
 
 int main() {
-    Utils::printHeader("CPU SCHEDULING SIMULATOR - FCFS Implementation");
+    Utils::printHeader("CPU SCHEDULING SIMULATOR - FCFS vs SJF Comparison");
 
-    // Create FCFS scheduler
+    // Create sample processes that show difference between FCFS and SJF
+    // Phase 4 Test Data: Demonstrates how SJF changes execution order
+    std::vector<Process> processes = {
+        Process(1, 0, 7, 0),   // P1: arrives at 0, burst 7
+        Process(2, 2, 4, 0),   // P2: arrives at 2, burst 4
+        Process(3, 4, 1, 0),   // P3: arrives at 4, burst 1 (shortest)
+        Process(4, 5, 4, 0)    // P4: arrives at 5, burst 4
+    };
+
+    std::cout << "Sample Processes:" << std::endl;
+    for (const auto& p : processes) {
+        std::cout << "  P" << p.pid << ": arrival=" << p.arrivalTime 
+                  << " burst=" << p.burstTime << std::endl;
+    }
+    std::cout << "\nNote: SJF will execute P3 before P2 and P4 (shortest job first)" << std::endl;
+
+    // Run FCFS Scheduler
+    std::cout << "\n" << std::string(80, '=') << std::endl;
+    std::cout << "RUNNING FCFS SCHEDULER" << std::endl;
+    std::cout << std::string(80, '=') << std::endl << std::endl;
+
     FCFSScheduler fcfs;
-
-    // Add sample processes
-    // Format: pid, arrival_time, burst_time, priority
-    fcfs.addProcess(1, 0, 5, 0);    // P1: arrives at 0, needs 5 time units
-    fcfs.addProcess(2, 1, 3, 0);    // P2: arrives at 1, needs 3 time units
-    fcfs.addProcess(3, 2, 4, 0);    // P3: arrives at 2, needs 4 time units
-    fcfs.addProcess(4, 6, 2, 0);    // P4: arrives at 6, needs 2 time units
-
-    std::cout << "Processes Added: " << fcfs.getProcessCount() << std::endl;
-    std::cout << "Running FCFS Scheduler...\n" << std::endl;
-
-    // Execute the scheduling algorithm
+    for (const auto& p : processes) {
+        fcfs.addProcess(p);
+    }
     fcfs.run();
-
-    // Calculate metrics
     fcfs.calculateMetrics();
-
-    // Display results
     fcfs.displayResults();
 
+    // Run SJF Scheduler
+    std::cout << "\n" << std::string(80, '=') << std::endl;
+    std::cout << "RUNNING SJF SCHEDULER" << std::endl;
+    std::cout << std::string(80, '=') << std::endl << std::endl;
+
+    SJFScheduler sjf;
+    for (const auto& p : processes) {
+        sjf.addProcess(p);
+    }
+    sjf.run();
+    sjf.calculateMetrics();
+    sjf.displayResults();
+
+    // Algorithm Comparison
+    std::cout << "\n" << std::string(80, '=') << std::endl;
+    std::cout << "ALGORITHM COMPARISON" << std::endl;
+    std::cout << std::string(80, '=') << std::endl << std::endl;
+
+    AlgorithmComparison comparison;
+    comparison.addScheduler(&fcfs, processes);
+    comparison.addScheduler(&sjf, processes);
+    comparison.runAllSchedulers();
+    comparison.displayComparison();
+
     std::cout << "\n" << "═══════════════════════════════════════════════════════════════════════════════" << std::endl;
-    std::cout << "FCFS Scheduling Simulation Complete!" << std::endl;
+    std::cout << "Simulation Complete - Phase 4: FCFS vs SJF Scheduling" << std::endl;
     std::cout << "═══════════════════════════════════════════════════════════════════════════════" << std::endl;
 
     return 0;

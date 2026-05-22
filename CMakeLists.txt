@@ -24,7 +24,9 @@ set(SOURCES
     src/Process.cpp
     src/Scheduler.cpp
     src/Utils.cpp
+    src/Comparison.cpp
     algorithms/FCFS.cpp
+    algorithms/SJF.cpp
 )
 
 # Create executable
