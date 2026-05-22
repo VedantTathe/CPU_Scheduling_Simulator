@@ -378,9 +378,6 @@ void SimulatorUI::runAllAlgorithmsComparison() {
     comparison.displayProfessionalDashboard();
 
     std::cout << "[OK] Comparison complete." << std::endl;
-
-    // Ask if user wants to clear processes after simulation
-    promptClearAfterSimulation();
 }
 
 void SimulatorUI::clearAllProcesses() {
