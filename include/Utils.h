@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Process.h"
+#include "CPUProcess.h"
 #include "Metrics.h"
 #include <vector>
 #include <string>

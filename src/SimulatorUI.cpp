@@ -4,6 +4,7 @@
 #include "../algorithms/FCFS.h"
 #include "../algorithms/SJF.h"
 #include "../algorithms/PriorityScheduler.h"
+#include "CPURuntime.h"
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -15,7 +16,8 @@
 SimulatorUI::SimulatorUI()
     : contextSwitchEnabledSetting(true),
       contextSwitchDelaySetting(1),
-      contextSwitchRealTimeDelaySetting(200) {}
+      contextSwitchRealTimeDelaySetting(200),
+      numCoresSetting(2) {}
 
 void SimulatorUI::run() {
     printWelcome();
@@ -250,14 +252,15 @@ void SimulatorUI::runSimulation() {
     clearScreen();
     Utils::printHeader("Run Simulation");
 
-    std::cout << "1. Run Single Algorithm" << std::endl;
-    std::cout << "2. Compare All Algorithms" << std::endl;
-    std::cout << "3. Configure Context Switch Settings" << std::endl;
-    std::cout << "4. Back to Main Menu" << std::endl;
-    std::cout << "\nSelect option (1-4): ";
+    std::cout << "1. Run Single Algorithm (Standard)" << std::endl;
+    std::cout << "2. Compare All Algorithms (Standard)" << std::endl;
+    std::cout << "3. Run Multi-Core Live Simulation" << std::endl;
+    std::cout << "4. Configure Context Switch Settings" << std::endl;
+    std::cout << "5. Back to Main Menu" << std::endl;
+    std::cout << "\nSelect option (1-5): ";
 
     std::string choice;
-    std::getline(std::cin, choice);
+    if (!std::getline(std::cin, choice)) return;
 
     if (choice == "1") {
         int algo = selectAlgorithm();
@@ -267,9 +270,11 @@ void SimulatorUI::runSimulation() {
     } else if (choice == "2") {
         runAllAlgorithmsComparison();
     } else if (choice == "3") {
+        runMultiCoreSimulation();
+    } else if (choice == "4") {
         configureContextSwitchSettings();
         runSimulation(); // Redraw menu after configuring
-    } else if (choice == "4") {
+    } else if (choice == "5") {
         return;
     } else {
         std::cout << "❌ Invalid choice." << std::endl;
@@ -498,6 +503,82 @@ void SimulatorUI::clearScreen() const {
     #else
         system("clear");
     #endif
+}
+
+void SimulatorUI::runMultiCoreSimulation() {
+    clearScreen();
+    Utils::printHeader("Run Multi-Core Live Simulation");
+
+    std::cout << "Enter number of CPU cores to simulate (1-8, default: 2): ";
+    std::string coreInput;
+    if (!std::getline(std::cin, coreInput)) return;
+
+    int numCores = 2;
+    if (coreInput.empty()) {
+        numCores = 2;
+    } else if (isValidInteger(coreInput)) {
+        numCores = std::stoi(coreInput);
+        if (numCores < 1 || numCores > 8) {
+            std::cout << "⚠️ Cores must be between 1 and 8. Using default (2)." << std::endl;
+            numCores = 2;
+        }
+    } else {
+        std::cout << "⚠️ Invalid input. Using default (2)." << std::endl;
+        numCores = 2;
+    }
+
+    int algo = selectAlgorithm();
+    if (algo < FCFS || algo > PRIORITY) {
+        std::cout << "❌ Scheduling simulation cancelled." << std::endl;
+        waitForUser();
+        return;
+    }
+
+    Scheduler* scheduler = nullptr;
+    std::string algorithmName;
+
+    switch (algo) {
+        case FCFS:
+            scheduler = new FCFSScheduler();
+            algorithmName = "FCFS";
+            break;
+        case SJF:
+            scheduler = new SJFScheduler();
+            algorithmName = "SJF";
+            break;
+        case PRIORITY:
+            scheduler = new PriorityScheduler();
+            algorithmName = "Priority Scheduling";
+            break;
+        default:
+            return;
+    }
+
+    // Apply header includes
+    // We should ensure CPURuntime is included. Let's see if we need to include it in SimulatorUI.h.
+    // Yes, SimulatorUI.h has CPURuntime.h included now?
+    // Wait, let's check SimulatorUI.h includes. If not, we will include it at the top of SimulatorUI.cpp!
+    // Since we include it at the top of SimulatorUI.cpp, we don't have to edit SimulatorUI.h!
+    // Let's check where header includes are located.
+    // Let's add the include to the very top of SimulatorUI.cpp if we can.
+    // Wait, let's see if CPURuntime is already included or if we can just define CPURuntime inside the function.
+    // Let's define the run logic.
+    
+    CPURuntime runtime;
+    std::vector<Process> tempProcesses = processes;
+
+    runtime.run(tempProcesses, scheduler, numCores, 
+                contextSwitchEnabledSetting ? contextSwitchDelaySetting : 0, 
+                contextSwitchRealTimeDelaySetting);
+
+    // Calculate metrics and display results
+    scheduler->calculateMetrics();
+    scheduler->displayResults();
+
+    std::cout << "\n[OK] Live Multi-Core Simulation completed for " << algorithmName << std::endl;
+    delete scheduler;
+
+    promptClearAfterSimulation();
 }
 
 void SimulatorUI::configureContextSwitchSettings() {

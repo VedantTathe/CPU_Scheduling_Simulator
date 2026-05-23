@@ -21,7 +21,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # Add source files
 set(SOURCES
     main.cpp
-    src/Process.cpp
+    src/CPUProcess.cpp
     src/Scheduler.cpp
     src/Utils.cpp
     src/Comparison.cpp
@@ -29,13 +29,20 @@ set(SOURCES
     src/FileHandler.cpp
     src/ReportGenerator.cpp
     src/ContextSwitch.cpp
+    src/CPUCore.cpp
+    src/CPURuntime.cpp
+    src/DashboardRenderer.cpp
     algorithms/FCFS.cpp
     algorithms/SJF.cpp
     algorithms/PriorityScheduler.cpp
 )
 
+find_package(Threads REQUIRED)
+
 # Create executable
 add_executable(simulator ${SOURCES})
+
+target_link_libraries(simulator PRIVATE Threads::Threads)
 
 # Enable compiler warnings
 if(MSVC)

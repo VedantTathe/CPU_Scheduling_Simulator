@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Process.h"
+#include "CPUProcess.h"
 
 /**
  * @class ContextSwitch

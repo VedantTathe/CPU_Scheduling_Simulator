@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Process.h"
+#include "CPUProcess.h"
 #include "Scheduler.h"
 #include "Comparison.h"
 #include "FileHandler.h"
@@ -39,6 +39,7 @@ private:
     bool contextSwitchEnabledSetting;
     int contextSwitchDelaySetting;
     int contextSwitchRealTimeDelaySetting;
+    int numCoresSetting;
 
     // Main menu options
     enum MenuChoice {
@@ -137,6 +138,11 @@ private:
      * @brief Configure the context switch settings interactively.
      */
     void configureContextSwitchSettings();
+
+    /**
+     * @brief Run simulated multi-core CPU scheduler live.
+     */
+    void runMultiCoreSimulation();
 
     /**
      * @brief Clear screen (cross-platform).

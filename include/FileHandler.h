@@ -5,7 +5,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-#include "Process.h"
+#include "CPUProcess.h"
 
 /**
  * @class FileHandler

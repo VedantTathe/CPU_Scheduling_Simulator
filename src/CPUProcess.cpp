@@ -1,4 +1,4 @@
-#include "Process.h"
+#include "CPUProcess.h"
 
 Process::Process()
     : pid(0), arrivalTime(0), burstTime(0), priority(0),

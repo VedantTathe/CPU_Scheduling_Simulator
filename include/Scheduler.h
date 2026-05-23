@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Process.h"
+#include "CPUProcess.h"
 #include "Metrics.h"
 #include <vector>
 #include <string>
@@ -21,6 +21,7 @@
  * - Derived classes implement specific scheduling logic
  */
 class Scheduler {
+    friend class CPURuntime;
 public:
     /**
      * @brief Virtual destructor.
