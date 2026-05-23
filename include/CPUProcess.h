@@ -34,6 +34,7 @@ public:
     int waitingTime;           // Total time spent waiting
     int turnaroundTime;        // Total time from arrival to completion
     int responseTime;          // Time from arrival to first execution
+    int deadline;              // Absolute deadline for real-time scheduling (EDF)
     ProcessState state;        // Current state of the process
 
     /**
@@ -48,8 +49,9 @@ public:
      * @param arrival Time when process arrives
      * @param burst Total CPU burst time needed
      * @param prio Priority level
+     * @param dl Absolute deadline (default 0, will auto-default to arrival + burst + 10)
      */
-    Process(int id, int arrival, int burst, int prio = 0);
+    Process(int id, int arrival, int burst, int prio = 0, int dl = 0);
 
     /**
      * @brief Reset process metrics.

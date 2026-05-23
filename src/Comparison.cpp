@@ -4,6 +4,15 @@
 #include <iomanip>
 #include <algorithm>
 #include <sstream>
+#include <cstdlib>
+#include <cstdio>
+#include <regex>
+
+#ifdef _WIN32
+#define popen _popen
+#define pclose _pclose
+#endif
+
 
 void AlgorithmComparison::addScheduler(Scheduler* scheduler, const std::vector<Process>& processes) {
     schedulers.push_back({scheduler, processes});
@@ -400,5 +409,118 @@ std::string AlgorithmComparison::getBestAlgorithmForMetric(const std::string& me
 std::string AlgorithmComparison::formatMetricValue(double value, int precision) const {
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(precision) << value;
+    return oss.str();
+}
+
+std::string AlgorithmComparison::getAIExplanation() const {
+    const char* apiKeyEnv = std::getenv("GEMINI_API_KEY");
+    if (apiKeyEnv && std::string(apiKeyEnv).length() > 5) {
+        std::string apiKey = std::string(apiKeyEnv);
+        std::cout << "\n\033[36m[AI Explanation] GEMINI_API_KEY detected! Querying Gemini AI for deep analysis...\033[0m" << std::endl;
+        
+        // Build prompt with actual results data
+        std::ostringstream promptStream;
+        promptStream << "Analyze the following CPU Scheduling comparison results:\n\n";
+        for (const auto& r : results) {
+            promptStream << "Algorithm: " << r.algorithmName << "\n"
+                         << " - Avg Waiting Time: " << r.metrics.averageWaitingTime << " units\n"
+                         << " - Avg Turnaround Time: " << r.metrics.averageTurnaroundTime << " units\n"
+                         << " - Avg Response Time: " << r.metrics.averageResponseTime << " units\n"
+                         << " - CPU Utilization: " << r.metrics.cpuUtilization << "%\n"
+                         << " - Throughput: " << r.metrics.throughput << " processes/unit\n\n";
+        }
+        promptStream << "Explain: 1. Which algorithm performed best and why. 2. The tradeoffs of waiting times, response times, and throughput between these algorithms. Keep it concise, professional, and educational (limit to 3-4 short paragraphs). Do not use markdown wrappers like ``` or other HTML formatting.";
+        
+        std::string apiResponse = queryGeminiAIExplanation(promptStream.str(), apiKey);
+        if (!apiResponse.empty()) {
+            // Extract the text content from Gemini's JSON candidate response
+            size_t startText = apiResponse.find("\"text\": \"");
+            if (startText != std::string::npos) {
+                startText += 9;
+                size_t endText = apiResponse.find("\"", startText);
+                if (endText != std::string::npos && endText > startText) {
+                    std::string explanation = apiResponse.substr(startText, endText - startText);
+                    // Unescape quotes and newlines
+                    explanation = std::regex_replace(explanation, std::regex("\\\\n"), "\n");
+                    explanation = std::regex_replace(explanation, std::regex("\\\\\""), "\"");
+                    explanation = std::regex_replace(explanation, std::regex("\\\\\\\\"), "\\");
+                    return "\033[32m🚀 [Gemini AI Deep Analysis]\033[0m\n" + explanation;
+                }
+            }
+        }
+        std::cout << "\033[33m⚠️ [AI Explanation] Gemini API query failed or returned invalid JSON. Falling back to offline rule-based analysis...\033[0m" << std::endl;
+    }
+
+    return generateOfflineAIExplanation();
+}
+
+std::string AlgorithmComparison::queryGeminiAIExplanation(const std::string& prompt, const std::string& apiKey) const {
+    std::string safePrompt = prompt;
+    safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '"'), safePrompt.end());
+    safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '\\'), safePrompt.end());
+    safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '`'), safePrompt.end());
+    safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '\n'), safePrompt.end());
+
+    std::string url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+    
+    std::ostringstream jsonStream;
+    jsonStream << "{\\\"contents\\\":[{\\\"parts\\\":[{\\\"text\\\":\\\"" << safePrompt << "\\\"}]}]}";
+    
+    std::string cmd = "curl -s -X POST \"" + url + "\" ";
+    cmd += "-H \"Content-Type: application/json\" ";
+    cmd += "-d \"" + jsonStream.str() + "\"";
+
+    FILE* fp = popen(cmd.c_str(), "r");
+    if (!fp) return "";
+
+    char buffer[1024];
+    std::string result = "";
+    while (fgets(buffer, sizeof(buffer), fp) != NULL) {
+        result += buffer;
+    }
+    pclose(fp);
+    return result;
+}
+
+std::string AlgorithmComparison::generateOfflineAIExplanation() const {
+    auto rankings = calculateRankings();
+    if (rankings.empty()) return "  No algorithms evaluated for explanation.\n";
+
+    std::ostringstream oss;
+    oss << "\n\033[1m\033[36m🎓 [Offline Smart Analysis Engine] Educational Insight & Trade-offs\033[0m\n\n";
+
+    // Describe Winner
+    std::string bestAlgo = rankings[0].algorithmName;
+    oss << "🏆 \033[1m" << bestAlgo << "\033[0m achieved the highest rank in this evaluation session.\n\n";
+
+    // Performance details
+    std::string bestWait = getBestAlgorithmForMetric("Avg Waiting Time");
+    std::string bestTurn = getBestAlgorithmForMetric("Avg Turnaround Time");
+    std::string bestResp = getBestAlgorithmForMetric("Avg Response Time");
+    std::string bestThru = getBestAlgorithmForMetric("Throughput");
+
+    oss << " - \033[1mWaiting Time\033[0m: \033[32m" << bestWait << "\033[0m won this metric. ";
+    if (bestWait.find("SJF") != std::string::npos) {
+        oss << "Shortest Job First minimizes wait times by executing shorter jobs first, preventing the queue from piling up.\n";
+    } else {
+        oss << "This algorithm achieved the fastest scheduling queue throughput.\n";
+    }
+
+    oss << " - \033[1mResponse Time\033[0m: \033[32m" << bestResp << "\033[0m won this metric. ";
+    if (bestResp.find("Round Robin") != std::string::npos) {
+        oss << "Round Robin provides excellent interactive responsiveness due to preemptive time-slicing, giving every process immediate CPU time.\n";
+    } else {
+        oss << "This algorithm quickly initiated process execution.\n";
+    }
+
+    oss << " - \033[1mThroughput\033[0m: \033[32m" << bestThru << "\033[0m won this metric. ";
+    oss << "A high throughput indicates efficient process graduation, which maximizes scheduling speed.\n\n";
+
+    // System Trade-offs
+    oss << "\033[1mSystem Trade-offs Analysis:\033[0m\n";
+    oss << " 1. \033[1mFCFS vs SJF\033[0m: FCFS is completely fair in terms of arrival sequence but is prone to the \"convoy effect\" where a long process blocks subsequent shorter tasks. SJF avoids this but requires knowing burst times in advance, which can cause starvation for longer jobs.\n";
+    oss << " 2. \033[1mRound Robin (Preemptive)\033[0m: Provides fair and immediate CPU access (low response times) which is ideal for interactive operating systems. However, it incurs significant context switch overhead (CPU core save/restore phases) which increases average turnaround time.\n";
+    oss << " 3. \033[1mPriority Scheduling\033[0m: Allocates resources based on critical process needs (e.g. system services vs user apps). However, without priority aging, low-priority tasks can remain in the READY state indefinitely (starvation).\n";
+
     return oss.str();
 }

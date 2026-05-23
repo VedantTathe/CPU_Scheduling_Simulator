@@ -2,11 +2,12 @@
 #define REPORTGENERATOR_H
 
 #include "Comparison.h"
+#include "CPURuntime.h"
 #include <string>
 
 /**
  * @class ReportGenerator
- * @brief Generates scheduling analysis reports from comparison results.
+ * @brief Generates scheduling analysis reports from comparison results and live sessions.
  * 
  * Exports professional analysis reports to text files for archival and sharing.
  */
@@ -19,6 +20,14 @@ public:
      * @return true if export successful, false otherwise
      */
     static bool generateReport(const AlgorithmComparison& comparison, const std::string& filename);
+
+    /**
+     * @brief Generate and export live simulation runtime execution report to file.
+     * @param session The RuntimeSession data to export
+     * @param filename Output filename
+     * @return true if export successful, false otherwise
+     */
+    static bool generateRuntimeReport(const RuntimeSession& session, const std::string& filename);
 
     /**
      * @brief Get last error message from report generation.

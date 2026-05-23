@@ -36,7 +36,8 @@ public:
      */
     void render(int currentTime, const std::string& algoName, int numCores,
                 const std::vector<std::unique_ptr<CPUCore>>& cores,
-                const std::vector<Process>& processes);
+                const std::vector<Process>& processes,
+                int totalContextSwitches = 0, int totalInterrupts = 0);
 
     /**
      * @brief Reset/Clear the screen to home position (flicker-free).

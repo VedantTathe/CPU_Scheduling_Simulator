@@ -10,6 +10,23 @@
 #include <mutex>
 
 /**
+ * @struct RuntimeSession
+ * @brief Holds execution telemetry and logs for a multi-core simulation run.
+ */
+struct RuntimeSession {
+    std::string algorithmName;
+    int numCores = 0;
+    int switchDelay = 0;
+    int realTimeDelayMs = 0;
+    int totalSimulationTime = 0;
+    int totalContextSwitches = 0;
+    int totalInterrupts = 0;
+    std::vector<double> coreUtilizations;
+    std::vector<std::string> processDispatchHistory;
+    std::vector<std::string> fullEventLog;
+};
+
+/**
  * @class CPURuntime
  * @brief Coordinates multi-core CPU execution simulation.
  * 
@@ -28,6 +45,9 @@ private:
     // Mutex to serialize standard console outputs
     mutable std::mutex printMutex;
 
+    // Saved execution report data for export
+    RuntimeSession lastSession;
+
 public:
     CPURuntime();
     ~CPURuntime();
@@ -42,6 +62,12 @@ public:
      * @param realTimeDelayMs Real-time step sleep duration in ms
      */
     void run(std::vector<Process>& simProcesses, Scheduler* scheduler, int numCores, int switchDelay, int realTimeDelayMs);
+
+    /**
+     * @brief Retrieve the telemetry and logs from the most recent simulation run.
+     * @return Const reference to RuntimeSession structure
+     */
+    const RuntimeSession& getLastSession() const { return lastSession; }
 
 private:
     /**

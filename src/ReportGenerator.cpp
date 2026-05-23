@@ -130,3 +130,79 @@ std::string ReportGenerator::generateFooter() {
 
     return oss.str();
 }
+
+bool ReportGenerator::generateRuntimeReport(const RuntimeSession& session, const std::string& filename) {
+    lastError = "";
+
+    try {
+        std::ofstream file(filename);
+        if (!file.is_open()) {
+            lastError = "Error: Cannot open file '" + filename + "' for writing.";
+            return false;
+        }
+
+        // Write Header
+        file << "===============================================================================\n";
+        file << "             CPU SCHEDULING SIMULATOR - RUNTIME EXECUTION REPORT\n";
+        file << "===============================================================================\n\n";
+
+        // Write Metadata
+        file << "SIMULATION METADATA\n";
+        file << "-------------------------------------------------------------------------------\n";
+        file << "Algorithm:                  " << session.algorithmName << "\n";
+        file << "Simulated CPU Cores:        " << session.numCores << "\n";
+        file << "Context Switch Delay:       " << session.switchDelay << " simulation units\n";
+        file << "Real-Time Step Delay:       " << session.realTimeDelayMs << " ms\n";
+        file << "Total Simulation Time:      " << session.totalSimulationTime << " units\n\n";
+
+        // Write Telemetry
+        file << "SYSTEM TELEMETRY\n";
+        file << "-------------------------------------------------------------------------------\n";
+        file << "Total Timer Interrupts:     " << session.totalInterrupts << "\n";
+        file << "Total Context Switches:     " << session.totalContextSwitches << "\n";
+        file << "Scheduler Overhead:         " << (session.totalContextSwitches * session.switchDelay) << " units\n\n";
+
+        // Write Core Utilizations
+        file << "CORE UTILIZATION STATISTICS\n";
+        file << "-------------------------------------------------------------------------------\n";
+        for (size_t i = 0; i < session.coreUtilizations.size(); ++i) {
+            double util = session.coreUtilizations[i];
+            int filled = (int)(util / 5); // 20 segments
+            std::ostringstream barStream;
+            barStream << "Core " << (i + 1) << ": [";
+            for (int k = 0; k < 20; ++k) {
+                if (k < filled) barStream << "█";
+                else barStream << "░";
+            }
+            barStream << "] " << std::fixed << std::setprecision(1) << util << "%";
+            file << barStream.str() << "\n";
+        }
+        file << "\n";
+
+        // Write Process Dispatch History
+        file << "PROCESS CORE DISPATCH HISTORY\n";
+        file << "-------------------------------------------------------------------------------\n";
+        for (const auto& log : session.processDispatchHistory) {
+            file << log << "\n";
+        }
+        file << "\n";
+
+        // Write Chronological Event Log
+        file << "CHRONOLOGICAL EVENT LOG\n";
+        file << "-------------------------------------------------------------------------------\n";
+        for (const auto& event : session.fullEventLog) {
+            file << event << "\n";
+        }
+        file << "\n";
+
+        // Write Footer
+        file << generateFooter();
+
+        file.close();
+        return true;
+
+    } catch (const std::exception& e) {
+        lastError = "Error: Exception during runtime report generation: " + std::string(e.what());
+        return false;
+    }
+}

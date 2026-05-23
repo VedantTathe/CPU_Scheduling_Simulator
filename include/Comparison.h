@@ -70,6 +70,12 @@ public:
     std::pair<std::string, std::string> getRecommendation() const;
 
     /**
+     * @brief Get a detailed AI-based analysis explanation of comparison results.
+     * Generates dynamic online Gemini AI analysis if API key is present, otherwise falls back to a smart offline C++ engine.
+     */
+    std::string getAIExplanation() const;
+
+    /**
      * @brief Get results for specific algorithm.
      * @param algorithmName Name of algorithm
      * @return AlgorithmResult with metrics
@@ -119,6 +125,16 @@ private:
      * @return Pair of (algorithm name, explanation string)
      */
     std::pair<std::string, std::string> generateRecommendation() const;
+
+    /**
+     * @brief Generates an offline C++ rule-based explanation of metrics and tradeoffs.
+     */
+    std::string generateOfflineAIExplanation() const;
+
+    /**
+     * @brief Queries the Gemini API for results explanation using a system curl process.
+     */
+    std::string queryGeminiAIExplanation(const std::string& prompt, const std::string& apiKey) const;
 
     /**
      * @brief Print professional dashboard header and title.

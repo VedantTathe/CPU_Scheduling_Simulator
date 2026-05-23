@@ -58,7 +58,8 @@ void DashboardRenderer::clearScreen() const {
 
 void DashboardRenderer::render(int currentTime, const std::string& algoName, int numCores,
                                const std::vector<std::unique_ptr<CPUCore>>& cores,
-                               const std::vector<Process>& processes) {
+                               const std::vector<Process>& processes,
+                               int totalContextSwitches, int totalInterrupts) {
     clearScreen();
 
     // 1. Render Header
@@ -85,6 +86,12 @@ void DashboardRenderer::render(int currentTime, const std::string& algoName, int
     std::cout << DBColor::CYAN << "║ " 
               << DBColor::BOLD << DBColor::WHITE << "Active CPU Cores:" << DBColor::RESET << " " << std::left << std::setw(14) << coreText.str()
               << DBColor::BOLD << DBColor::WHITE << "Processes:" << DBColor::RESET << " " << std::left << std::setw(42) << procText.str()
+              << DBColor::CYAN << "║\n";
+              
+    std::ostringstream telemetryText;
+    telemetryText << "Switches: " << totalContextSwitches << "   Interrupts: " << totalInterrupts;
+    std::cout << DBColor::CYAN << "║ " 
+              << DBColor::BOLD << DBColor::WHITE << "System Telemetry:" << DBColor::RESET << " " << std::left << std::setw(67) << telemetryText.str()
               << DBColor::CYAN << "║\n";
               
     std::cout << DBColor::CYAN << "╚═════════════════════════════════════════════════════════════════════════════════════╝\n" << DBColor::RESET;

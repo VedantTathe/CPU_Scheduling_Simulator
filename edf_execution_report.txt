@@ -1,0 +1,83 @@
+===============================================================================
+             CPU SCHEDULING SIMULATOR - RUNTIME EXECUTION REPORT
+===============================================================================
+
+SIMULATION METADATA
+-------------------------------------------------------------------------------
+Algorithm:                  Earliest Deadline First (EDF) Preemptive
+Simulated CPU Cores:        2
+Context Switch Delay:       1 simulation units
+Real-Time Step Delay:       200 ms
+Total Simulation Time:      14 units
+
+SYSTEM TELEMETRY
+-------------------------------------------------------------------------------
+Total Timer Interrupts:     9
+Total Context Switches:     6
+Scheduler Overhead:         6 units
+
+CORE UTILIZATION STATISTICS
+-------------------------------------------------------------------------------
+Core 1: [████████████░░░░░░░░] 64.3%
+Core 2: [███████░░░░░░░░░░░░░] 35.7%
+
+PROCESS CORE DISPATCH HISTORY
+-------------------------------------------------------------------------------
+Process P1 (UI_System) : Core 1 (2 ticks)
+Process P2 (MusicPlayer) : Core 2 (2 ticks)
+Process P3 (SocialMedia) : Core 1 (1 ticks), Core 2 (3 ticks)
+Process P4 (WebBrowser) : Core 1 (5 ticks)
+Process P5 (EmailSync) : Core 1 (1 ticks)
+
+CHRONOLOGICAL EVENT LOG
+-------------------------------------------------------------------------------
+[Time   0] [TIMER INTERRUPT] Scheduler Invoked
+[Time   0] Process P1 Arrived: WAITING -> READY
+[Time   0] [CONTEXT SWITCH] Core 1: Saving outgoing context...
+[Time   0] [CONTEXT SWITCH] Core 1: Loading context for P1...
+[Time   1] Context Switch Complete on Core 1
+[Time   1] Core 1: Dispatching Process P1
+[Time   2] [TIMER INTERRUPT] Scheduler Invoked
+[Time   2] Process P2 Arrived: WAITING -> READY
+[Time   2] Process P3 Arrived: WAITING -> READY
+[Time   2] [CONTEXT SWITCH] Core 2: Saving outgoing context...
+[Time   2] [CONTEXT SWITCH] Core 2: Loading context for P2...
+[Time   3] Context Switch Complete on Core 2
+[Time   3] Core 2: Dispatching Process P2
+[Time   4] [TIMER INTERRUPT] Scheduler Invoked
+[Time   4] Process P4 Arrived: WAITING -> READY
+[Time   4] Process P1 Completed on Core 1
+[Time   4] [CONTEXT SWITCH] Core 1: Saving outgoing context...
+[Time   4] [CONTEXT SWITCH] Core 1: Loading context for P3...
+[Time   5] Context Switch Complete on Core 1
+[Time   5] Core 1: Dispatching Process P3
+[Time   6] [TIMER INTERRUPT] Scheduler Invoked
+[Time   6] Process P5 Arrived: WAITING -> READY
+[Time   6] Process P2 Completed on Core 2
+[Time   6] Process P3 Preempted by earlier deadline P5 on Core 1
+[Time   6] [CONTEXT SWITCH] Core 1: Saving outgoing context...
+[Time   6] [CONTEXT SWITCH] Core 1: Loading context for P5...
+[Time   7] Context Switch Complete on Core 1
+[Time   7] Core 1: Dispatching Process P5
+[Time   7] [CONTEXT SWITCH] Core 2: Saving outgoing context...
+[Time   7] [CONTEXT SWITCH] Core 2: Loading context for P3...
+[Time   8] Context Switch Complete on Core 2
+[Time   8] Core 2: Dispatching Process P3
+[Time   9] [TIMER INTERRUPT] Scheduler Invoked
+[Time   9] Process P5 Completed on Core 1
+[Time   9] [CONTEXT SWITCH] Core 1: Saving outgoing context...
+[Time   9] [CONTEXT SWITCH] Core 1: Loading context for P4...
+[Time  10] Context Switch Complete on Core 1
+[Time  10] Core 1: Dispatching Process P4
+[Time  11] [TIMER INTERRUPT] Scheduler Invoked
+[Time  12] [TIMER INTERRUPT] Scheduler Invoked
+[Time  12] Process P3 Completed on Core 2
+[Time  13] [TIMER INTERRUPT] Scheduler Invoked
+[Time  14] [TIMER INTERRUPT] Scheduler Invoked
+[Time  14] >>> SIMULATION COMPLETE (Total Time: 14 units) <<<
+
+
+================================================================================
+Report Generated: 2026-05-24 00:24:22
+CPU Scheduling Simulator - Professional Analysis Tool
+===============================================================================

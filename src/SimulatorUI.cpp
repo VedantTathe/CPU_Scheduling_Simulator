@@ -3,6 +3,7 @@
 #include "Comparison.h"
 #include "CPURuntime.h"
 #include "SchedulerRegistry.h"
+#include "ReportGenerator.h"
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -463,7 +464,14 @@ void SimulatorUI::runAllAlgorithmsComparison() {
     comparison.runAllSchedulers();
     comparison.displayProfessionalDashboard();
 
-    std::cout << "[OK] Comparison complete across all " << instances.size() << " registered schedulers." << std::endl;
+    std::cout << "\nWould you like to generate a deep AI-based analysis explanation of these results? (Y/N, default: Y): ";
+    std::string response;
+    std::getline(std::cin, response);
+    if (response != "N" && response != "n") {
+        std::cout << comparison.getAIExplanation() << std::endl;
+    }
+
+    std::cout << "\n[OK] Comparison complete across all " << instances.size() << " registered schedulers." << std::endl;
 }
 
 void SimulatorUI::clearAllProcesses() {
@@ -603,6 +611,23 @@ void SimulatorUI::runMultiCoreSimulation() {
     scheduler->displayResults();
 
     std::cout << "\n[OK] Live Multi-Core Simulation completed for " << scheduler->getAlgorithmName() << std::endl;
+
+    std::cout << "\nWould you like to export this simulation's execution report to a file? (Y/N, default: Y): ";
+    std::string exportResp;
+    std::getline(std::cin, exportResp);
+    if (exportResp != "N" && exportResp != "n") {
+        std::cout << "Enter filename (default: execution_report.txt): ";
+        std::string filename;
+        std::getline(std::cin, filename);
+        if (filename.empty()) {
+            filename = "execution_report.txt";
+        }
+        if (ReportGenerator::generateRuntimeReport(runtime.getLastSession(), filename)) {
+            std::cout << "📊 [OK] Runtime execution report successfully exported to '" << filename << "'!" << std::endl;
+        } else {
+            std::cout << "❌ [ERROR] Failed to export report: " << ReportGenerator::getLastError() << std::endl;
+        }
+    }
 
     promptClearAfterSimulation();
 }
