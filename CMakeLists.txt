@@ -32,6 +32,8 @@ set(SOURCES
     src/CPUCore.cpp
     src/CPURuntime.cpp
     src/DashboardRenderer.cpp
+    src/SchedulerRegistry.cpp
+    src/PluginManager.cpp
     algorithms/FCFS.cpp
     algorithms/SJF.cpp
     algorithms/PriorityScheduler.cpp
@@ -42,7 +44,7 @@ find_package(Threads REQUIRED)
 # Create executable
 add_executable(simulator ${SOURCES})
 
-target_link_libraries(simulator PRIVATE Threads::Threads)
+target_link_libraries(simulator PRIVATE Threads::Threads ${CMAKE_DL_LIBS})
 
 # Enable compiler warnings
 if(MSVC)

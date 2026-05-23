@@ -1,6 +1,7 @@
 #include "PriorityScheduler.h"
 #include "../include/Utils.h"
 #include "../include/ContextSwitch.h"
+#include "../include/SchedulerRegistry.h"
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
@@ -197,4 +198,17 @@ void PriorityScheduler::printMetricsSummary() const {
     std::cout << "CPU Utilization:           " << metrics.cpuUtilization << "%" << std::endl;
     std::cout << "Throughput:                " << std::fixed << std::setprecision(4) 
               << metrics.throughput << " processes/time unit" << std::endl;
+}
+
+namespace {
+    struct PriorityRegister {
+        PriorityRegister() {
+            SchedulerRegistry::getInstance().registerScheduler(
+                "Priority",
+                "Priority Scheduling (Non-Preemptive)",
+                []() { return std::make_unique<PriorityScheduler>(); }
+            );
+        }
+    };
+    static PriorityRegister global_priority_register;
 }

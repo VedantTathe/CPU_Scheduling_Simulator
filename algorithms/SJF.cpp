@@ -1,6 +1,7 @@
 #include "SJF.h"
 #include "../include/Utils.h"
 #include "../include/ContextSwitch.h"
+#include "../include/SchedulerRegistry.h"
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
@@ -193,4 +194,17 @@ void SJFScheduler::printMetricsSummary() const {
     std::cout << "CPU Utilization:           " << metrics.cpuUtilization << "%" << std::endl;
     std::cout << "Throughput:                " << std::fixed << std::setprecision(4) 
               << metrics.throughput << " processes/time unit" << std::endl;
+}
+
+namespace {
+    struct SJFRegister {
+        SJFRegister() {
+            SchedulerRegistry::getInstance().registerScheduler(
+                "SJF",
+                "Shortest Job First (Non-Preemptive)",
+                []() { return std::make_unique<SJFScheduler>(); }
+            );
+        }
+    };
+    static SJFRegister global_sjf_register;
 }

@@ -1,10 +1,8 @@
 #include "SimulatorUI.h"
 #include "Utils.h"
 #include "Comparison.h"
-#include "../algorithms/FCFS.h"
-#include "../algorithms/SJF.h"
-#include "../algorithms/PriorityScheduler.h"
 #include "CPURuntime.h"
+#include "SchedulerRegistry.h"
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -17,7 +15,9 @@ SimulatorUI::SimulatorUI()
     : contextSwitchEnabledSetting(true),
       contextSwitchDelaySetting(1),
       contextSwitchRealTimeDelaySetting(200),
-      numCoresSetting(2) {}
+      numCoresSetting(2) {
+    pluginManager.scanPlugins("./plugins");
+}
 
 void SimulatorUI::run() {
     printWelcome();
@@ -263,9 +263,9 @@ void SimulatorUI::runSimulation() {
     if (!std::getline(std::cin, choice)) return;
 
     if (choice == "1") {
-        int algo = selectAlgorithm();
-        if (algo >= FCFS && algo <= PRIORITY) {
-            executeSingleAlgorithm(algo);
+        std::string algoName = selectAlgorithm();
+        if (!algoName.empty()) {
+            executeSingleAlgorithm(algoName);
         }
     } else if (choice == "2") {
         runAllAlgorithmsComparison();
@@ -281,55 +281,52 @@ void SimulatorUI::runSimulation() {
     }
 }
 
-int SimulatorUI::selectAlgorithm() {
+std::string SimulatorUI::selectAlgorithm() {
     clearScreen();
     Utils::printHeader("Select Scheduling Algorithm");
 
-    std::cout << "1. FCFS (First Come First Served)" << std::endl;
-    std::cout << "2. SJF (Shortest Job First)" << std::endl;
-    std::cout << "3. Priority Scheduling" << std::endl;
-    std::cout << "4. Back to Main Menu" << std::endl;
+    auto registered = SchedulerRegistry::getInstance().getRegisteredSchedulers();
+    if (registered.empty()) {
+        std::cout << "❌ No scheduling algorithms registered! Please verify plugins or built-in classes." << std::endl;
+        return "";
+    }
 
-    std::cout << "\nSelect algorithm (1-4): ";
+    // Sort registered algorithms so FCFS, SJF, Priority come in a clean order if they are registered
+    std::sort(registered.begin(), registered.end(), [](const auto& a, const auto& b) {
+        return a.name < b.name;
+    });
+
+    for (size_t i = 0; i < registered.size(); ++i) {
+        std::cout << (i + 1) << ". " << registered[i].name << " (" << registered[i].description << ")" << std::endl;
+    }
+    std::cout << (registered.size() + 1) << ". Back to Selection Menu" << std::endl;
+
+    std::cout << "\nSelect algorithm (1-" << (registered.size() + 1) << "): ";
 
     std::string choice;
     std::getline(std::cin, choice);
 
     if (isValidInteger(choice)) {
-        int algo = std::stoi(choice);
-        if (algo >= 1 && algo <= 4) {
-            return algo;
+        int idx = std::stoi(choice);
+        if (idx >= 1 && idx <= static_cast<int>(registered.size())) {
+            return registered[idx - 1].name;
+        } else if (idx == static_cast<int>(registered.size() + 1)) {
+            return ""; // Back selected
         }
     }
 
     std::cout << "❌ Invalid choice." << std::endl;
-    return BACK;
+    return "";
 }
 
-void SimulatorUI::executeSingleAlgorithm(int choice) {
+void SimulatorUI::executeSingleAlgorithm(const std::string& algoName) {
+    if (algoName.empty()) return;
     clearScreen();
 
-    Scheduler* scheduler = nullptr;
-    std::string algorithmName;
-
-    switch (choice) {
-        case FCFS: {
-            scheduler = new FCFSScheduler();
-            algorithmName = "FCFS";
-            break;
-        }
-        case SJF: {
-            scheduler = new SJFScheduler();
-            algorithmName = "SJF";
-            break;
-        }
-        case PRIORITY: {
-            scheduler = new PriorityScheduler();
-            algorithmName = "Priority Scheduling";
-            break;
-        }
-        default:
-            return;
+    auto scheduler = SchedulerRegistry::getInstance().createScheduler(algoName);
+    if (!scheduler) {
+        std::cout << "❌ Error: Could not instantiate scheduler for '" << algoName << "'." << std::endl;
+        return;
     }
 
     // Add processes to scheduler
@@ -358,9 +355,7 @@ void SimulatorUI::executeSingleAlgorithm(int choice) {
     // Display results
     scheduler->displayResults();
 
-    std::cout << "\n[OK] Simulation completed for " << algorithmName << std::endl;
-
-    delete scheduler;
+    std::cout << "\n[OK] Simulation completed for " << scheduler->getAlgorithmName() << std::endl;
 
     // Ask if user wants to clear processes after simulation
     promptClearAfterSimulation();
@@ -368,52 +363,51 @@ void SimulatorUI::executeSingleAlgorithm(int choice) {
 
 void SimulatorUI::runAllAlgorithmsComparison() {
     clearScreen();
-    Utils::printHeader("Running All Algorithms...");
+    Utils::printHeader("Running All Registered Algorithms...");
 
-    FCFSScheduler fcfs;
-    SJFScheduler sjf;
-    PriorityScheduler priority;
-
-    for (const auto& p : processes) {
-        fcfs.addProcess(p);
-        sjf.addProcess(p);
-        priority.addProcess(p);
+    auto registered = SchedulerRegistry::getInstance().getRegisteredSchedulers();
+    if (registered.empty()) {
+        std::cout << "❌ No registered scheduling algorithms found." << std::endl;
+        return;
     }
 
-    // Apply context switch settings (without real-time delay or live traces during comparison to keep output clean)
-    fcfs.setContextSwitchSettings(contextSwitchEnabledSetting, contextSwitchDelaySetting, 0, false);
-    sjf.setContextSwitchSettings(contextSwitchEnabledSetting, contextSwitchDelaySetting, 0, false);
-    priority.setContextSwitchSettings(contextSwitchEnabledSetting, contextSwitchDelaySetting, 0, false);
+    std::vector<std::unique_ptr<Scheduler>> instances;
+    AlgorithmComparison comparison;
 
-    fcfs.run();
-    fcfs.calculateMetrics();
-
-    sjf.run();
-    sjf.calculateMetrics();
-
-    priority.run();
-    priority.calculateMetrics();
+    for (const auto& info : registered) {
+        auto scheduler = SchedulerRegistry::getInstance().createScheduler(info.name);
+        if (scheduler) {
+            // Add processes
+            for (const auto& p : processes) {
+                scheduler->addProcess(p);
+            }
+            // Apply context switch settings (no live display)
+            scheduler->setContextSwitchSettings(contextSwitchEnabledSetting, contextSwitchDelaySetting, 0, false);
+            
+            // Run and calculate
+            scheduler->run();
+            scheduler->calculateMetrics();
+            
+            // Add to comparison list
+            comparison.addScheduler(scheduler.get(), processes);
+            
+            // Store instance so memory stays valid during comparison display
+            instances.push_back(std::move(scheduler));
+        }
+    }
 
     // Display individual results
-    std::cout << "\n" << std::string(80, '=') << std::endl;
-    fcfs.displayResults();
+    for (const auto& scheduler : instances) {
+        std::cout << "\n" << std::string(80, '=') << std::endl;
+        scheduler->displayResults();
+    }
 
+    // Display comparison dashboard
     std::cout << "\n" << std::string(80, '=') << std::endl;
-    sjf.displayResults();
-
-    std::cout << "\n" << std::string(80, '=') << std::endl;
-    priority.displayResults();
-
-    // Display comparison
-    std::cout << "\n" << std::string(80, '=') << std::endl;
-    AlgorithmComparison comparison;
-    comparison.addScheduler(&fcfs, processes);
-    comparison.addScheduler(&sjf, processes);
-    comparison.addScheduler(&priority, processes);
     comparison.runAllSchedulers();
     comparison.displayProfessionalDashboard();
 
-    std::cout << "[OK] Comparison complete." << std::endl;
+    std::cout << "[OK] Comparison complete across all " << instances.size() << " registered schedulers." << std::endl;
 }
 
 void SimulatorUI::clearAllProcesses() {
@@ -527,47 +521,24 @@ void SimulatorUI::runMultiCoreSimulation() {
         numCores = 2;
     }
 
-    int algo = selectAlgorithm();
-    if (algo < FCFS || algo > PRIORITY) {
+    std::string algoName = selectAlgorithm();
+    if (algoName.empty()) {
         std::cout << "❌ Scheduling simulation cancelled." << std::endl;
         waitForUser();
         return;
     }
 
-    Scheduler* scheduler = nullptr;
-    std::string algorithmName;
-
-    switch (algo) {
-        case FCFS:
-            scheduler = new FCFSScheduler();
-            algorithmName = "FCFS";
-            break;
-        case SJF:
-            scheduler = new SJFScheduler();
-            algorithmName = "SJF";
-            break;
-        case PRIORITY:
-            scheduler = new PriorityScheduler();
-            algorithmName = "Priority Scheduling";
-            break;
-        default:
-            return;
+    auto scheduler = SchedulerRegistry::getInstance().createScheduler(algoName);
+    if (!scheduler) {
+        std::cout << "❌ Error: Could not instantiate scheduler for '" << algoName << "'." << std::endl;
+        waitForUser();
+        return;
     }
 
-    // Apply header includes
-    // We should ensure CPURuntime is included. Let's see if we need to include it in SimulatorUI.h.
-    // Yes, SimulatorUI.h has CPURuntime.h included now?
-    // Wait, let's check SimulatorUI.h includes. If not, we will include it at the top of SimulatorUI.cpp!
-    // Since we include it at the top of SimulatorUI.cpp, we don't have to edit SimulatorUI.h!
-    // Let's check where header includes are located.
-    // Let's add the include to the very top of SimulatorUI.cpp if we can.
-    // Wait, let's see if CPURuntime is already included or if we can just define CPURuntime inside the function.
-    // Let's define the run logic.
-    
     CPURuntime runtime;
     std::vector<Process> tempProcesses = processes;
 
-    runtime.run(tempProcesses, scheduler, numCores, 
+    runtime.run(tempProcesses, scheduler.get(), numCores, 
                 contextSwitchEnabledSetting ? contextSwitchDelaySetting : 0, 
                 contextSwitchRealTimeDelaySetting);
 
@@ -575,8 +546,7 @@ void SimulatorUI::runMultiCoreSimulation() {
     scheduler->calculateMetrics();
     scheduler->displayResults();
 
-    std::cout << "\n[OK] Live Multi-Core Simulation completed for " << algorithmName << std::endl;
-    delete scheduler;
+    std::cout << "\n[OK] Live Multi-Core Simulation completed for " << scheduler->getAlgorithmName() << std::endl;
 
     promptClearAfterSimulation();
 }

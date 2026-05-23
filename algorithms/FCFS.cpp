@@ -1,6 +1,7 @@
 #include "FCFS.h"
 #include "../include/Utils.h"
 #include "../include/ContextSwitch.h"
+#include "../include/SchedulerRegistry.h"
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
@@ -151,4 +152,17 @@ int FCFSScheduler::calculateResponseTime(const Process& process) const {
     // In FCFS, response time equals waiting time
     // (process gets CPU access immediately when it's its turn)
     return process.waitingTime;
+}
+
+namespace {
+    struct FCFSRegister {
+        FCFSRegister() {
+            SchedulerRegistry::getInstance().registerScheduler(
+                "FCFS",
+                "First Come First Served (Non-Preemptive)",
+                []() { return std::make_unique<FCFSScheduler>(); }
+            );
+        }
+    };
+    static FCFSRegister global_fcfs_register;
 }

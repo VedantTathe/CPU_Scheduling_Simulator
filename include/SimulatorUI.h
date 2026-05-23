@@ -4,6 +4,7 @@
 #include "Scheduler.h"
 #include "Comparison.h"
 #include "FileHandler.h"
+#include "PluginManager.h"
 #include <vector>
 #include <string>
 
@@ -51,14 +52,6 @@ private:
         EXIT = 6
     };
 
-    // Algorithm selection
-    enum AlgorithmChoice {
-        FCFS = 1,
-        SJF = 2,
-        PRIORITY = 3,
-        BACK = 4
-    };
-
     /**
      * @brief Display main menu and get user choice.
      * @return Selected menu option
@@ -87,15 +80,15 @@ private:
 
     /**
      * @brief Display algorithm selection menu.
-     * @return Selected algorithm
+     * @return Selected algorithm name (empty if Back selected)
      */
-    int selectAlgorithm();
+    std::string selectAlgorithm();
 
     /**
      * @brief Run single scheduling algorithm.
-     * @param choice Algorithm to run
+     * @param algoName Unique name of algorithm to run
      */
-    void executeSingleAlgorithm(int choice);
+    void executeSingleAlgorithm(const std::string& algoName);
 
     /**
      * @brief Run all three algorithms for comparison.
@@ -148,4 +141,6 @@ private:
      * @brief Clear screen (cross-platform).
      */
     void clearScreen() const;
+
+    PluginManager pluginManager;
 };
