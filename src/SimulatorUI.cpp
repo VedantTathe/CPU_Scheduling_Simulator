@@ -35,6 +35,10 @@ void SimulatorUI::run() {
                 loadProcessesFromFile();
                 break;
 
+            case AI_GENERATION:
+                generateAIWorkload();
+                break;
+
             case RUN_SIMULATION:
                 if (processes.empty()) {
                     std::cout << "\n❌ ERROR: No processes to schedule. Please input processes first.\n" << std::endl;
@@ -74,12 +78,13 @@ int SimulatorUI::displayMainMenu() {
     std::cout << "Current Processes: " << processes.size() << std::endl;
     std::cout << "\n1. Input Processes Manually" << std::endl;
     std::cout << "2. Load Processes from File" << std::endl;
-    std::cout << "3. Run Simulation" << std::endl;
-    std::cout << "4. View Processes" << std::endl;
-    std::cout << "5. Clear Processes" << std::endl;
-    std::cout << "6. Exit" << std::endl;
+    std::cout << "3. AI Workload Generation" << std::endl;
+    std::cout << "4. Run Simulation" << std::endl;
+    std::cout << "5. View Processes" << std::endl;
+    std::cout << "6. Clear Processes" << std::endl;
+    std::cout << "7. Exit" << std::endl;
 
-    std::cout << "\nSelect option (1-6): ";
+    std::cout << "\nSelect option (1-7): ";
 
     std::string input;
     if (!std::getline(std::cin, input)) {
@@ -88,7 +93,7 @@ int SimulatorUI::displayMainMenu() {
 
     if (isValidInteger(input)) {
         int choice = std::stoi(input);
-        if (choice >= 1 && choice <= 6) {
+        if (choice >= 1 && choice <= 7) {
             return choice;
         }
     }
@@ -218,6 +223,57 @@ void SimulatorUI::loadProcessesFromFile() {
         
     } catch (const std::runtime_error& e) {
         std::cout << "\n❌ " << e.what() << std::endl;
+    }
+}
+
+void SimulatorUI::generateAIWorkload() {
+    clearScreen();
+    Utils::printHeader("AI Workload Generation");
+
+    std::cout << "Enter a natural language prompt to describe your CPU workload scenario." << std::endl;
+    std::cout << "Example prompts:" << std::endl;
+    std::cout << " - gaming workload" << std::endl;
+    std::cout << " - smartphone multitasking" << std::endl;
+    std::cout << " - hospital emergency system" << std::endl;
+    std::cout << " - web server workload" << std::endl;
+    std::cout << " - machine learning training" << std::endl;
+    
+    std::cout << "\nPrompt: ";
+    std::string prompt;
+    std::getline(std::cin, prompt);
+
+    AIWorkloadGenerator aiGen;
+    std::vector<Process> generated = aiGen.generateWorkload(prompt);
+
+    if (generated.empty()) {
+        std::cout << "\n❌ ERROR: AI Engine failed to generate processes." << std::endl;
+        return;
+    }
+
+    // Set UI processes state
+    processes = generated;
+
+    std::cout << "\n[OK] Automatically generated " << processes.size() << " processes into simulator runtime!" << std::endl;
+    
+    // Preview generated processes
+    std::cout << "\nGenerated Workload Details:" << std::endl;
+    std::cout << std::left
+              << std::setw(6) << "PID"
+              << std::setw(20) << "Process Name"
+              << std::setw(12) << "Arrival"
+              << std::setw(10) << "Burst"
+              << std::setw(12) << "Priority"
+              << std::endl;
+    Utils::printDivider(60, '-');
+    
+    for (const auto& p : processes) {
+        std::cout << std::left
+                  << std::setw(6) << p.pid
+                  << std::setw(20) << p.name
+                  << std::setw(12) << p.arrivalTime
+                  << std::setw(10) << p.burstTime
+                  << std::setw(12) << p.priority
+                  << std::endl;
     }
 }
 

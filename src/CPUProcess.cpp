@@ -1,12 +1,12 @@
 #include "CPUProcess.h"
 
 Process::Process()
-    : pid(0), arrivalTime(0), burstTime(0), priority(0),
+    : pid(0), name("P0"), arrivalTime(0), burstTime(0), priority(0),
       remainingTime(0), completionTime(0), waitingTime(0),
       turnaroundTime(0), responseTime(-1), state(ProcessState::WAITING) {}
 
 Process::Process(int id, int arrival, int burst, int prio)
-    : pid(id), arrivalTime(arrival), burstTime(burst), priority(prio),
+    : pid(id), name("P" + std::to_string(id)), arrivalTime(arrival), burstTime(burst), priority(prio),
       remainingTime(burst), completionTime(0), waitingTime(0),
       turnaroundTime(0), responseTime(-1), state(ProcessState::WAITING) {}
 

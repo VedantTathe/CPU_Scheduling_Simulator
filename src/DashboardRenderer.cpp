@@ -128,7 +128,7 @@ void DashboardRenderer::render(int currentTime, const std::string& algoName, int
             }
             std::cout << " " << std::setw(3) << percent << "%]" << DBColor::RESET << " ";
             std::cout << DBColor::BOLD << DBColor::GREEN << "RUNNING" << DBColor::RESET << " -> " 
-                      << DBColor::BOLD << "Process P" << p->pid << DBColor::RESET 
+                      << DBColor::BOLD << "Process P" << p->pid << " (" << p->name << ")" << DBColor::RESET 
                       << " (Burst Left: " << DBColor::CYAN << p->remainingTime << DBColor::RESET << " / " << p->burstTime << ")\n";
             std::cout << "│          " << DBColor::GRAY << "(Priority: " << p->priority << ", Arrived: " << p->arrivalTime << ")" << DBColor::RESET << "\n";
         }
@@ -158,7 +158,7 @@ void DashboardRenderer::render(int currentTime, const std::string& algoName, int
     for (const auto& p : processes) {
         if (p.state == ProcessState::READY) {
             if (!firstReady) std::cout << ", ";
-            std::cout << DBColor::CYAN << "P" << p.pid << DBColor::RESET << " (Rem: " << p.remainingTime << ", Prio: " << p.priority << ")";
+            std::cout << DBColor::CYAN << "P" << p.pid << DBColor::RESET << " (" << p.name << ", Rem: " << p.remainingTime << ", Prio: " << p.priority << ")";
             firstReady = false;
         }
     }
@@ -171,7 +171,7 @@ void DashboardRenderer::render(int currentTime, const std::string& algoName, int
     for (const auto& p : processes) {
         if (p.state == ProcessState::WAITING) {
             if (!firstWaiting) std::cout << ", ";
-            std::cout << DBColor::YELLOW << "P" << p.pid << DBColor::RESET << " (Arrives at: " << p.arrivalTime << ", Burst: " << p.burstTime << ")";
+            std::cout << DBColor::YELLOW << "P" << p.pid << DBColor::RESET << " (" << p.name << ", Arrives: " << p.arrivalTime << ", Burst: " << p.burstTime << ")";
             firstWaiting = false;
         }
     }
@@ -184,7 +184,7 @@ void DashboardRenderer::render(int currentTime, const std::string& algoName, int
     for (const auto& p : processes) {
         if (p.state == ProcessState::COMPLETED) {
             if (!firstCompleted) std::cout << ", ";
-            std::cout << DBColor::MAGENTA << "P" << p.pid << DBColor::RESET;
+            std::cout << DBColor::MAGENTA << "P" << p.pid << DBColor::RESET << " (" << p.name << ")";
             firstCompleted = false;
         }
     }

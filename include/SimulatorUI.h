@@ -5,6 +5,7 @@
 #include "Comparison.h"
 #include "FileHandler.h"
 #include "PluginManager.h"
+#include "AIWorkloadGenerator.h"
 #include <vector>
 #include <string>
 
@@ -46,10 +47,11 @@ private:
     enum MenuChoice {
         INPUT_PROCESSES = 1,
         LOAD_FROM_FILE = 2,
-        RUN_SIMULATION = 3,
-        VIEW_PROCESSES = 4,
-        CLEAR_PROCESSES = 5,
-        EXIT = 6
+        AI_GENERATION = 3,
+        RUN_SIMULATION = 4,
+        VIEW_PROCESSES = 5,
+        CLEAR_PROCESSES = 6,
+        EXIT = 7
     };
 
     /**
@@ -67,6 +69,11 @@ private:
      * @brief Load processes from a file.
      */
     void loadProcessesFromFile();
+
+    /**
+     * @brief Generate realistic processes using AI workload engine.
+     */
+    void generateAIWorkload();
 
     /**
      * @brief Display current processes.

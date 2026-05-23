@@ -34,6 +34,7 @@ set(SOURCES
     src/DashboardRenderer.cpp
     src/SchedulerRegistry.cpp
     src/PluginManager.cpp
+    src/AIWorkloadGenerator.cpp
     algorithms/FCFS.cpp
     algorithms/SJF.cpp
     algorithms/PriorityScheduler.cpp

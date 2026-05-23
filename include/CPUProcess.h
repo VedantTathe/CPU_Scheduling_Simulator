@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <string>
 
 /**
  * @enum ProcessState
@@ -24,6 +25,7 @@ class Process {
 public:
     // Attributes
     int pid;                    // Process ID
+    std::string name;          // Process name (e.g. "GameEngine")
     int arrivalTime;           // Time when process arrives in ready queue
     int burstTime;             // Total CPU time needed (original burst time)
     int priority;              // Priority level (lower = higher priority)
