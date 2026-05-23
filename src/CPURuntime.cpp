@@ -49,6 +49,10 @@ Process* CPURuntime::selectNextProcess(const std::vector<Process*>& eligible, co
             } else if (p->priority == selected->priority && p->arrivalTime == selected->arrivalTime && p->pid < selected->pid) {
                 selected = p;
             }
+        } else if (algoName.find("Round Robin") != std::string::npos || algoName.find("RR") != std::string::npos) {
+            // Round Robin: FIFO queue order (first element in eligible is already the oldest in readyQueue)
+            // We just return eligible[0] which is already at selected.
+            return selected;
         }
     }
     return selected;
@@ -69,6 +73,9 @@ void CPURuntime::run(std::vector<Process>& simProcesses, Scheduler* scheduler, i
     // Clear and prepare cores
     cores.clear();
     previousProcesses.clear();
+    std::vector<int> coreQuantumElapsed(numCores, 0);
+    std::vector<Process*> readyQueue;
+
     for (int i = 0; i < numCores; ++i) {
         cores.push_back(std::make_unique<CPUCore>(i + 1));
         previousProcesses.push_back(nullptr);
@@ -108,6 +115,7 @@ void CPURuntime::run(std::vector<Process>& simProcesses, Scheduler* scheduler, i
                 p.state = ProcessState::READY;
                 scheduler->recordTransition(currentTime, p.pid, ProcessState::WAITING, ProcessState::READY);
                 renderer.addEvent(currentTime, "Process \033[1m\033[36mP" + std::to_string(p.pid) + "\033[0m Arrived: WAITING -> READY");
+                readyQueue.push_back(&p);
             }
         }
 
@@ -126,6 +134,30 @@ void CPURuntime::run(std::vector<Process>& simProcesses, Scheduler* scheduler, i
                     scheduler->recordTransition(currentTime, completedProcess->pid, ProcessState::RUNNING, ProcessState::COMPLETED);
                     core->releaseProcess();
                 }
+                coreQuantumElapsed[i] = 0; // Reset quantum
+            }
+        }
+
+        // Check for preemption if preemptive scheduler (quantum > 0)
+        int quantum = scheduler->getQuantum();
+        if (quantum > 0) {
+            for (int i = 0; i < numCores; ++i) {
+                auto& core = cores[i];
+                if (!core->isIdle() && !core->isSwitching()) {
+                    Process* p = core->getActiveProcess();
+                    if (p != nullptr && p->remainingTime > 0) {
+                        coreQuantumElapsed[i]++;
+                        if (coreQuantumElapsed[i] >= quantum) {
+                            // Preempt process!
+                            p->state = ProcessState::READY;
+                            scheduler->recordTransition(currentTime, p->pid, ProcessState::RUNNING, ProcessState::READY);
+                            renderer.addEvent(currentTime, "Process \033[1m\033[33mP" + std::to_string(p->pid) + "\033[0m Preempted (Quantum Expired) on Core " + std::to_string(core->getId()));
+                            readyQueue.push_back(p);
+                            core->releaseProcess();
+                            coreQuantumElapsed[i] = 0;
+                        }
+                    }
+                }
             }
         }
 
@@ -133,16 +165,14 @@ void CPURuntime::run(std::vector<Process>& simProcesses, Scheduler* scheduler, i
         for (int i = 0; i < numCores; ++i) {
             auto& core = cores[i];
             if (core->isIdle() && !core->isSwitching()) {
-                // Find all eligible processes in READY state that have arrived
-                std::vector<Process*> eligible;
-                for (auto& p : simProcesses) {
-                    if (p.state == ProcessState::READY && p.arrivalTime <= currentTime) {
-                        eligible.push_back(&p);
-                    }
-                }
-
-                Process* nextP = selectNextProcess(eligible, scheduler->getAlgorithmName());
+                Process* nextP = selectNextProcess(readyQueue, scheduler->getAlgorithmName());
                 if (nextP != nullptr) {
+                    // Remove from readyQueue
+                    auto it = std::find(readyQueue.begin(), readyQueue.end(), nextP);
+                    if (it != readyQueue.end()) {
+                        readyQueue.erase(it);
+                    }
+
                     // Mark core as context switching
                     core->setSwitching(true);
                     
@@ -185,6 +215,7 @@ void CPURuntime::run(std::vector<Process>& simProcesses, Scheduler* scheduler, i
                     // Assign to core
                     core->assignProcess(nextP, tickIntervalMs);
                     previousProcesses[i] = nextP;
+                    coreQuantumElapsed[i] = 0; // Reset quantum elapsed for the new process
 
                     renderer.addEvent(currentTime, "Core " + std::to_string(core->getId()) + ": Dispatching Process \033[1m\033[32mP" + std::to_string(nextP->pid) + "\033[0m");
                     renderer.render(currentTime, scheduler->getAlgorithmName(), numCores, cores, simProcesses);

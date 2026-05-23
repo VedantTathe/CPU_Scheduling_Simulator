@@ -61,6 +61,36 @@ endif()
 # Optional: Add algorithms subdirectory (when ready)
 # add_subdirectory(algorithms)
 
+# Add Round Robin Plugin as a shared dynamic library
+add_library(RoundRobinScheduler SHARED 
+    plugins/RoundRobinScheduler.cpp 
+    src/CPUProcess.cpp 
+    src/Scheduler.cpp 
+    src/Utils.cpp
+    src/SchedulerRegistry.cpp
+    src/ContextSwitch.cpp
+)
+target_include_directories(RoundRobinScheduler PRIVATE ${CMAKE_SOURCE_DIR}/include)
+if(WIN32)
+    set_target_properties(RoundRobinScheduler PROPERTIES
+        PREFIX ""
+        SUFFIX ".dll"
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/plugins
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/plugins
+    )
+else()
+    set_target_properties(RoundRobinScheduler PROPERTIES
+        PREFIX "lib"
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/plugins
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/plugins
+    )
+endif()
+
+# Copy compiled plugin directly to base plugins directory for runtime scanning
+add_custom_command(TARGET RoundRobinScheduler POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:RoundRobinScheduler> ${CMAKE_SOURCE_DIR}/plugins/RoundRobinScheduler.dll
+)
+
 # Print build configuration
 message(STATUS "C++ Standard: C++${CMAKE_CXX_STANDARD}")
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")

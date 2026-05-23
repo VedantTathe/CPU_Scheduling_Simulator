@@ -84,6 +84,12 @@ public:
      * @return Reference to Metrics structure
      */
     const Metrics& getMetrics() const;
+    
+    /**
+     * @brief Get the quantum size (used for preemptive schedulers like Round Robin).
+     * @return Time quantum size, or 0 if non-preemptive
+     */
+    virtual int getQuantum() const { return 0; }
 
     /**
      * @brief Reset all processes and metrics.
