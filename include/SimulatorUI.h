@@ -35,6 +35,11 @@ private:
     // UI State
     std::vector<Process> processes;
 
+    // Context Switch Simulation settings
+    bool contextSwitchEnabledSetting;
+    int contextSwitchDelaySetting;
+    int contextSwitchRealTimeDelaySetting;
+
     // Main menu options
     enum MenuChoice {
         INPUT_PROCESSES = 1,
@@ -127,6 +132,11 @@ private:
      * @return true if valid integer
      */
     bool isValidInteger(const std::string& input) const;
+
+    /**
+     * @brief Configure the context switch settings interactively.
+     */
+    void configureContextSwitchSettings();
 
     /**
      * @brief Clear screen (cross-platform).

@@ -1,5 +1,6 @@
 #include "FCFS.h"
 #include "../include/Utils.h"
+#include "../include/ContextSwitch.h"
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
@@ -23,12 +24,20 @@ void FCFSScheduler::run() {
     }
 
     int currentTime = 0;
+    Process* previousProcess = nullptr;
 
     // Execute each process in FCFS order
     for (auto& process : processes) {
         // Handle CPU idle time
         if (currentTime < process.arrivalTime) {
             currentTime = process.arrivalTime;
+            previousProcess = nullptr; // CPU was idle
+        }
+
+        // Perform context switch if enabled
+        if (contextSwitchEnabled) {
+            ContextSwitch::performSwitch(currentTime, previousProcess, &process, contextSwitchRealTimeDelayMs);
+            currentTime += contextSwitchDelay;
         }
 
         // Process starts execution
@@ -52,6 +61,7 @@ void FCFSScheduler::run() {
 
         // Move timeline forward
         currentTime = completionTime;
+        previousProcess = &process;
     }
 
     // Store total execution time

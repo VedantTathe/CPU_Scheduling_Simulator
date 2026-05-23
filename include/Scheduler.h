@@ -91,6 +91,15 @@ public:
     void reset();
 
     /**
+     * @brief Configure context switch simulation settings.
+     * @param enabled Enable simulated context switching
+     * @param delay Context switch overhead in simulation units
+     * @param realTimeDelayMs Real-time sleep delay in milliseconds
+     * @param live Enable live printing of transitions during run()
+     */
+    void setContextSwitchSettings(bool enabled, int delay, int realTimeDelayMs, bool live);
+
+    /**
      * @struct StateTransitionEvent
      * @brief Represents a process state transition event for chronological logging.
      */
@@ -128,6 +137,13 @@ protected:
     Metrics metrics;                       // Calculated performance metrics
     int totalExecutionTime;                // Total time to complete all processes
     std::vector<StateTransitionEvent> transitionEvents; // Recorded state transitions
+    
+    // Context Switch Simulation Parameters
+    bool contextSwitchEnabled;             // Enable simulated context switching
+    int contextSwitchDelay;                // Context switch overhead (simulation units)
+    int contextSwitchRealTimeDelayMs;      // Real-time sleep delay in milliseconds
+    bool liveVisualization;                // Enable printing state transitions live
+
 
     /**
      * @brief Record a state transition event.

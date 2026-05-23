@@ -12,7 +12,10 @@
 #include <algorithm>
 #include <cstdlib>
 
-SimulatorUI::SimulatorUI() {}
+SimulatorUI::SimulatorUI()
+    : contextSwitchEnabledSetting(true),
+      contextSwitchDelaySetting(1),
+      contextSwitchRealTimeDelaySetting(200) {}
 
 void SimulatorUI::run() {
     printWelcome();
@@ -77,7 +80,9 @@ int SimulatorUI::displayMainMenu() {
     std::cout << "\nSelect option (1-6): ";
 
     std::string input;
-    std::getline(std::cin, input);
+    if (!std::getline(std::cin, input)) {
+        return EXIT;
+    }
 
     if (isValidInteger(input)) {
         int choice = std::stoi(input);
@@ -247,7 +252,9 @@ void SimulatorUI::runSimulation() {
 
     std::cout << "1. Run Single Algorithm" << std::endl;
     std::cout << "2. Compare All Algorithms" << std::endl;
-    std::cout << "\nSelect option (1-2): ";
+    std::cout << "3. Configure Context Switch Settings" << std::endl;
+    std::cout << "4. Back to Main Menu" << std::endl;
+    std::cout << "\nSelect option (1-4): ";
 
     std::string choice;
     std::getline(std::cin, choice);
@@ -259,6 +266,11 @@ void SimulatorUI::runSimulation() {
         }
     } else if (choice == "2") {
         runAllAlgorithmsComparison();
+    } else if (choice == "3") {
+        configureContextSwitchSettings();
+        runSimulation(); // Redraw menu after configuring
+    } else if (choice == "4") {
+        return;
     } else {
         std::cout << "❌ Invalid choice." << std::endl;
     }
@@ -320,9 +332,23 @@ void SimulatorUI::executeSingleAlgorithm(int choice) {
         scheduler->addProcess(p);
     }
 
+    // Apply context switch settings
+    scheduler->setContextSwitchSettings(contextSwitchEnabledSetting,
+                                       contextSwitchDelaySetting,
+                                       contextSwitchRealTimeDelaySetting,
+                                       contextSwitchEnabledSetting);
+
+    if (contextSwitchEnabledSetting) {
+        Utils::printSectionHeader("Live OS Execution Trace");
+    }
+
     // Run scheduler
     scheduler->run();
     scheduler->calculateMetrics();
+
+    if (contextSwitchEnabledSetting) {
+        std::cout << std::endl;
+    }
 
     // Display results
     scheduler->displayResults();
@@ -348,6 +374,11 @@ void SimulatorUI::runAllAlgorithmsComparison() {
         sjf.addProcess(p);
         priority.addProcess(p);
     }
+
+    // Apply context switch settings (without real-time delay or live traces during comparison to keep output clean)
+    fcfs.setContextSwitchSettings(contextSwitchEnabledSetting, contextSwitchDelaySetting, 0, false);
+    sjf.setContextSwitchSettings(contextSwitchEnabledSetting, contextSwitchDelaySetting, 0, false);
+    priority.setContextSwitchSettings(contextSwitchEnabledSetting, contextSwitchDelaySetting, 0, false);
 
     fcfs.run();
     fcfs.calculateMetrics();
@@ -454,7 +485,7 @@ bool SimulatorUI::isValidInteger(const std::string& input) const {
     if (input.empty()) return false;
     
     try {
-        std::stoi(input);
+        (void)std::stoi(input);
         return true;
     } catch (...) {
         return false;
@@ -467,4 +498,53 @@ void SimulatorUI::clearScreen() const {
     #else
         system("clear");
     #endif
+}
+
+void SimulatorUI::configureContextSwitchSettings() {
+    clearScreen();
+    Utils::printHeader("Context Switch Settings");
+    
+    std::cout << "Enable simulated context switching? (Y/N, default: Y): ";
+    std::string csEnabledInput;
+    std::getline(std::cin, csEnabledInput);
+    if (csEnabledInput == "N" || csEnabledInput == "n") {
+        contextSwitchEnabledSetting = false;
+        contextSwitchDelaySetting = 0;
+        contextSwitchRealTimeDelaySetting = 0;
+        std::cout << "\n[OK] Context switching disabled." << std::endl;
+        waitForUser();
+        return;
+    } else {
+        contextSwitchEnabledSetting = true;
+    }
+
+    std::cout << "Enter Context Switch Delay (simulation units, default: 1): ";
+    std::string csDelayInput;
+    std::getline(std::cin, csDelayInput);
+    if (csDelayInput.empty()) {
+        contextSwitchDelaySetting = 1;
+    } else if (isValidInteger(csDelayInput) && std::stoi(csDelayInput) >= 0) {
+        contextSwitchDelaySetting = std::stoi(csDelayInput);
+    } else {
+        std::cout << "⚠️ Invalid input. Using default (1)." << std::endl;
+        contextSwitchDelaySetting = 1;
+    }
+
+    std::cout << "Enter Real-Time step/sleep delay (ms, default: 200, 0 for instant): ";
+    std::string csRealTimeInput;
+    std::getline(std::cin, csRealTimeInput);
+    if (csRealTimeInput.empty()) {
+        contextSwitchRealTimeDelaySetting = 200;
+    } else if (isValidInteger(csRealTimeInput) && std::stoi(csRealTimeInput) >= 0) {
+        contextSwitchRealTimeDelaySetting = std::stoi(csRealTimeInput);
+    } else {
+        std::cout << "⚠️ Invalid input. Using default (200)." << std::endl;
+        contextSwitchRealTimeDelaySetting = 200;
+    }
+
+    std::cout << "\n[OK] Context Switch Settings Updated:" << std::endl;
+    std::cout << " - Context Switching: " << (contextSwitchEnabledSetting ? "ENABLED" : "DISABLED") << std::endl;
+    std::cout << " - Simulation Delay: " << contextSwitchDelaySetting << " units" << std::endl;
+    std::cout << " - Real-Time Delay: " << contextSwitchRealTimeDelaySetting << " ms" << std::endl;
+    waitForUser();
 }

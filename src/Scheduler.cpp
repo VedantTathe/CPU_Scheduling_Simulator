@@ -4,7 +4,18 @@
 #include <numeric>
 
 Scheduler::Scheduler()
-    : totalExecutionTime(0) {}
+    : totalExecutionTime(0),
+      contextSwitchEnabled(false),
+      contextSwitchDelay(0),
+      contextSwitchRealTimeDelayMs(0),
+      liveVisualization(false) {}
+
+void Scheduler::setContextSwitchSettings(bool enabled, int delay, int realTimeDelayMs, bool live) {
+    contextSwitchEnabled = enabled;
+    contextSwitchDelay = delay;
+    contextSwitchRealTimeDelayMs = realTimeDelayMs;
+    liveVisualization = live;
+}
 
 void Scheduler::addProcess(const Process& process) {
     processes.push_back(process);
@@ -109,6 +120,9 @@ void Scheduler::computeAverageMetrics() {
 
 void Scheduler::recordTransition(int time, int pid, ProcessState oldState, ProcessState newState) {
     transitionEvents.push_back({time, pid, oldState, newState});
+    if (liveVisualization) {
+        Utils::printStateTransition(time, pid, oldState, newState);
+    }
 }
 
 void Scheduler::printTransitionTrace() const {

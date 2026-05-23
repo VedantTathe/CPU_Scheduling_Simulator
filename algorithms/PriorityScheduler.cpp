@@ -1,5 +1,6 @@
 #include "PriorityScheduler.h"
 #include "../include/Utils.h"
+#include "../include/ContextSwitch.h"
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
@@ -44,6 +45,7 @@ void PriorityScheduler::run() {
 
     std::vector<int> scheduled;  // Track which processes have been scheduled
     int currentTime = 0;
+    Process* previousProcess = nullptr;
 
     // Continue until all processes are scheduled
     while (scheduled.size() < processes.size()) {
@@ -62,10 +64,17 @@ void PriorityScheduler::run() {
             if (nextArrival != INT_MAX) {
                 currentTime = nextArrival;
                 nextProcess = selectNextProcess(currentTime, scheduled);
+                previousProcess = nullptr; // CPU was idle
             }
         }
 
         if (nextProcess != nullptr) {
+            // Perform context switch if enabled
+            if (contextSwitchEnabled) {
+                ContextSwitch::performSwitch(currentTime, previousProcess, nextProcess, contextSwitchRealTimeDelayMs);
+                currentTime += contextSwitchDelay;
+            }
+
             // Execute the selected process
             int startTime = currentTime;
             int completionTime = startTime + nextProcess->burstTime;
@@ -86,6 +95,7 @@ void PriorityScheduler::run() {
 
             scheduled.push_back(nextProcess->pid);
             currentTime = completionTime;
+            previousProcess = nextProcess;
         }
     }
 
