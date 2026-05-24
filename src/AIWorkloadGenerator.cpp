@@ -157,7 +157,7 @@ std::string AIWorkloadGenerator::callDeepSeekAPI(const std::string& prompt, cons
     
     std::ostringstream jsonStream;
     jsonStream << "{\\\"model\\\":\\\"deepseek-chat\\\",\\\"messages\\\":[{\\\"role\\\":\\\"user\\\",\\\"content\\\":\\\"Generate a valid raw JSON array of realistic processes for: '" 
-               << safePrompt << "'. Format: [ {\\\\\\\"pid\\\\\\\":1, \\\\\\\"name\\\\\\\":\\\\\\\"GameEngine\\\\\\\", \\\\\\\"arrival\\\\\\\":0, \\\\\\\"burst\\\\\\\":8, \\\\\\\"priority\\\\\\\":1} ]. Only return the JSON array, no markdown wrappers, no backticks, no comments, no extra text.\\\"}],\\\"temperature\\\":0.2}";
+               << safePrompt << "'. Format: [ {\\\\\\\"pid\\\\\\\":1, \\\\\\\"name\\\\\\\":\\\\\\\"GameEngine\\\\\\\", \\\\\\\"arrival\\\\\\\":0, \\\\\\\"burst\\\\\\\":8, \\\\\\\"priority\\\\\\\":1} ]. You MUST strictly generate the exact number of processes specified in the prompt if a quantity is requested (e.g., 'gen 4' -> generate exactly 4 processes). If no quantity is specified, generate between 5 to 8 processes. Only return the JSON array, no markdown wrappers, no backticks, no comments, no extra text.\\\"}],\\\"temperature\\\":0.2}";
     
     std::string cmd = "curl -s -X POST \"" + url + "\" ";
     cmd += "-H \"Content-Type: application/json\" ";
