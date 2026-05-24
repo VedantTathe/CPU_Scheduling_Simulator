@@ -12,7 +12,7 @@ void ContextSwitch::performSwitch(int currentTime, const Process* outgoing, cons
               << ConsoleColor::RESET << std::endl;
 
     // 1. Save outgoing context
-    std::cout << " ├─ Saving Context: ";
+    std::cout << "  |- Saving Context: ";
     if (outgoing != nullptr) {
         std::cout << ConsoleColor::YELLOW << "Process P" << outgoing->pid << ConsoleColor::RESET << "..." << std::endl;
     } else {
@@ -25,7 +25,7 @@ void ContextSwitch::performSwitch(int currentTime, const Process* outgoing, cons
     }
 
     // 2. Load/restore incoming context
-    std::cout << " ├─ Loading Context: ";
+    std::cout << "  |- Loading Context: ";
     if (incoming != nullptr) {
         std::cout << ConsoleColor::GREEN << "Process P" << incoming->pid << ConsoleColor::RESET << "..." << std::endl;
     } else {
@@ -38,6 +38,6 @@ void ContextSwitch::performSwitch(int currentTime, const Process* outgoing, cons
     }
 
     // 3. Complete context switch
-    std::cout << " └─ " << ConsoleColor::BOLD << ConsoleColor::CYAN 
+    std::cout << "  +- " << ConsoleColor::BOLD << ConsoleColor::CYAN 
               << "Context Switch Complete" << ConsoleColor::RESET << std::endl;
 }
