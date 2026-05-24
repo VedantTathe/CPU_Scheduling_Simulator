@@ -7,7 +7,7 @@
 /**
  * @class AIWorkloadGenerator
  * @brief Component to generate realistic process datasets from natural language prompts.
- * Dynamically queries Gemini API if GEMINI_API_KEY is available, or defaults to a highly polished
+ * Dynamically queries DeepSeek API if DEEPSEEK_API_KEY is available, or defaults to a highly polished
  * offline rule-based generator.
  */
 class AIWorkloadGenerator {
@@ -29,9 +29,9 @@ private:
     std::vector<Process> generateOfflineWorkload(const std::string& prompt);
 
     /**
-     * @brief Query Gemini AI API via system curl processes (fully dependency-free).
+     * @brief Query DeepSeek AI API via system curl processes (fully dependency-free).
      */
-    std::string callGeminiAPI(const std::string& prompt, const std::string& apiKey);
+    std::string callDeepSeekAPI(const std::string& prompt, const std::string& apiKey);
 
     /**
      * @brief Parses JSON list outputs into internal Process representation.

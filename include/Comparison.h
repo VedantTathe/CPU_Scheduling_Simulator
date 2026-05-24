@@ -132,9 +132,9 @@ private:
     std::string generateOfflineAIExplanation() const;
 
     /**
-     * @brief Queries the Gemini API for results explanation using a system curl process.
+     * @brief Queries the DeepSeek API for results explanation using a system curl process.
      */
-    std::string queryGeminiAIExplanation(const std::string& prompt, const std::string& apiKey) const;
+    std::string queryDeepSeekAIExplanation(const std::string& prompt, const std::string& apiKey) const;
 
     /**
      * @brief Print professional dashboard header and title.

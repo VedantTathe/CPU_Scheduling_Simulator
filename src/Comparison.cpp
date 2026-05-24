@@ -413,10 +413,10 @@ std::string AlgorithmComparison::formatMetricValue(double value, int precision) 
 }
 
 std::string AlgorithmComparison::getAIExplanation() const {
-    const char* apiKeyEnv = std::getenv("GEMINI_API_KEY");
+    const char* apiKeyEnv = std::getenv("DEEPSEEK_API_KEY");
     if (apiKeyEnv && std::string(apiKeyEnv).length() > 5) {
         std::string apiKey = std::string(apiKeyEnv);
-        std::cout << "\n\033[36m[AI Explanation] GEMINI_API_KEY detected! Querying Gemini AI for deep analysis...\033[0m" << std::endl;
+        std::cout << "\n\033[36m[AI Explanation] DEEPSEEK_API_KEY detected! Querying DeepSeek AI for deep analysis...\033[0m" << std::endl;
         
         // Build prompt with actual results data
         std::ostringstream promptStream;
@@ -431,12 +431,12 @@ std::string AlgorithmComparison::getAIExplanation() const {
         }
         promptStream << "Explain: 1. Which algorithm performed best and why. 2. The tradeoffs of waiting times, response times, and throughput between these algorithms. Keep it concise, professional, and educational (limit to 3-4 short paragraphs). Do not use markdown wrappers like ``` or other HTML formatting.";
         
-        std::string apiResponse = queryGeminiAIExplanation(promptStream.str(), apiKey);
+        std::string apiResponse = queryDeepSeekAIExplanation(promptStream.str(), apiKey);
         if (!apiResponse.empty()) {
-            // Extract the text content from Gemini's JSON candidate response
-            size_t startText = apiResponse.find("\"text\": \"");
+            // Extract the text content from DeepSeek's JSON chat.completion response
+            size_t startText = apiResponse.find("\"content\": \"");
             if (startText != std::string::npos) {
-                startText += 9;
+                startText += 12;
                 size_t endText = apiResponse.find("\"", startText);
                 if (endText != std::string::npos && endText > startText) {
                     std::string explanation = apiResponse.substr(startText, endText - startText);
@@ -444,30 +444,31 @@ std::string AlgorithmComparison::getAIExplanation() const {
                     explanation = std::regex_replace(explanation, std::regex("\\\\n"), "\n");
                     explanation = std::regex_replace(explanation, std::regex("\\\\\""), "\"");
                     explanation = std::regex_replace(explanation, std::regex("\\\\\\\\"), "\\");
-                    return "\033[32m🚀 [Gemini AI Deep Analysis]\033[0m\n" + explanation;
+                    return "\033[32m🚀 [DeepSeek AI Deep Analysis]\033[0m\n" + explanation;
                 }
             }
         }
-        std::cout << "\033[33m⚠️ [AI Explanation] Gemini API query failed or returned invalid JSON. Falling back to offline rule-based analysis...\033[0m" << std::endl;
+        std::cout << "\033[33m⚠️ [AI Explanation] DeepSeek API query failed or returned invalid JSON. Falling back to offline rule-based analysis...\033[0m" << std::endl;
     }
 
     return generateOfflineAIExplanation();
 }
 
-std::string AlgorithmComparison::queryGeminiAIExplanation(const std::string& prompt, const std::string& apiKey) const {
+std::string AlgorithmComparison::queryDeepSeekAIExplanation(const std::string& prompt, const std::string& apiKey) const {
     std::string safePrompt = prompt;
     safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '"'), safePrompt.end());
     safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '\\'), safePrompt.end());
     safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '`'), safePrompt.end());
     safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '\n'), safePrompt.end());
 
-    std::string url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+    std::string url = "https://api.deepseek.com/chat/completions";
     
     std::ostringstream jsonStream;
-    jsonStream << "{\\\"contents\\\":[{\\\"parts\\\":[{\\\"text\\\":\\\"" << safePrompt << "\\\"}]}]}";
+    jsonStream << "{\\\"model\\\":\\\"deepseek-chat\\\",\\\"messages\\\":[{\\\"role\\\":\\\"user\\\",\\\"content\\\":\\\"" << safePrompt << "\\\"}],\\\"temperature\\\":0.2}";
     
     std::string cmd = "curl -s -X POST \"" + url + "\" ";
     cmd += "-H \"Content-Type: application/json\" ";
+    cmd += "-H \"Authorization: Bearer " + apiKey + "\" ";
     cmd += "-d \"" + jsonStream.str() + "\"";
 
     FILE* fp = popen(cmd.c_str(), "r");

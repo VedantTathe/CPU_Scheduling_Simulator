@@ -65,3 +65,5 @@ test_results/
 
 # Archives
 *.zip
+
+.env
