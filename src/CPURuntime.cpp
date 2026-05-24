@@ -364,14 +364,14 @@ void CPURuntime::run(std::vector<Process>& simProcesses, Scheduler* scheduler, i
     renderer.render(totalSimulationTime, scheduler->getAlgorithmName(), numCores, cores, simProcesses, totalContextSwitches, totalInterrupts);
     
     // Render the beautiful visual statistics analytics summary box
-    std::cout << "\n\033[1m\033[36m╔═════════════════════════════════════════════════════════════════════════════════════╗\n";
-    std::cout << "║                         ADVANCED RUNTIME EXECUTION ANALYTICS                        ║\n";
-    std::cout << "╠═════════════════════════════════════════════════════════════════════════════════════╣\n";
-    std::cout << "║ " << std::left << std::setw(30) << "Total Timer Interrupts:" << std::left << std::setw(52) << totalInterrupts << "║\n";
-    std::cout << "║ " << std::left << std::setw(30) << "Total Context Switches:" << std::left << std::setw(52) << totalContextSwitches << "║\n";
-    std::cout << "║ " << std::left << std::setw(30) << "Average Scheduler Overhead:" << std::left << std::setw(52) << (std::to_string(totalContextSwitches * switchDelay) + " time units") << "║\n";
-    std::cout << "╠═════════════════════════════════════════════════════════════════════════════════════╣\n";
-    std::cout << "║ CORE UTILIZATION STATISTICS                                                         ║\n";
+    std::cout << "\n\033[1m\033[36m+=====================================================================================+\n";
+    std::cout << "|                         ADVANCED RUNTIME EXECUTION ANALYTICS                        |\n";
+    std::cout << "+=====================================================================================+\n";
+    std::cout << "| " << std::left << std::setw(30) << "Total Timer Interrupts:" << std::left << std::setw(52) << totalInterrupts << "|\n";
+    std::cout << "| " << std::left << std::setw(30) << "Total Context Switches:" << std::left << std::setw(52) << totalContextSwitches << "|\n";
+    std::cout << "| " << std::left << std::setw(30) << "Average Scheduler Overhead:" << std::left << std::setw(52) << (std::to_string(totalContextSwitches * switchDelay) + " time units") << "|\n";
+    std::cout << "+=====================================================================================+\n";
+    std::cout << "| CORE UTILIZATION STATISTICS                                                         |\n";
     
     for (int i = 0; i < numCores; ++i) {
         double util = 0.0;
@@ -383,15 +383,15 @@ void CPURuntime::run(std::vector<Process>& simProcesses, Scheduler* scheduler, i
         std::ostringstream barStream;
         barStream << "Core " << (i + 1) << ": [";
         for (int k = 0; k < 20; ++k) {
-            if (k < filled) barStream << "█";
-            else barStream << "░";
+            if (k < filled) barStream << "#";
+            else barStream << ".";
         }
         barStream << "] " << std::fixed << std::setprecision(1) << util << "%";
-        std::cout << "║  " << std::left << std::setw(81) << barStream.str() << "║\n";
+        std::cout << "|  " << std::left << std::setw(81) << barStream.str() << "|\n";
     }
     
-    std::cout << "╠═════════════════════════════════════════════════════════════════════════════════════╣\n";
-    std::cout << "║ PROCESS CORE DISPATCH HISTORY (Ticks spent per Core)                                ║\n";
+    std::cout << "+=====================================================================================+\n";
+    std::cout << "| PROCESS CORE DISPATCH HISTORY (Ticks spent per Core)                                |\n";
     
     for (const auto& p : simProcesses) {
         std::ostringstream histStream;
@@ -411,10 +411,10 @@ void CPURuntime::run(std::vector<Process>& simProcesses, Scheduler* scheduler, i
         if (firstCore) {
             histStream << "No execution ticks logged.";
         }
-        std::cout << "║  " << std::left << std::setw(81) << histStream.str() << "║\n";
+        std::cout << "|  " << std::left << std::setw(81) << histStream.str() << "|\n";
     }
     
-    std::cout << "╚═════════════════════════════════════════════════════════════════════════════════════╝\033[0m\n";
+    std::cout << "+=====================================================================================+\033[0m\n";
     std::cout << std::endl;
 
     // Populate lastSession remaining metrics

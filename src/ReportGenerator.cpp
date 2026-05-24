@@ -171,8 +171,8 @@ bool ReportGenerator::generateRuntimeReport(const RuntimeSession& session, const
             std::ostringstream barStream;
             barStream << "Core " << (i + 1) << ": [";
             for (int k = 0; k < 20; ++k) {
-                if (k < filled) barStream << "█";
-                else barStream << "░";
+                if (k < filled) barStream << "#";
+                else barStream << ".";
             }
             barStream << "] " << std::fixed << std::setprecision(1) << util << "%";
             file << barStream.str() << "\n";
