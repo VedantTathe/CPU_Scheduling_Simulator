@@ -98,6 +98,12 @@ void loadEnvFile() {
 }
 
 int main() {
+#ifdef _WIN32
+    // Set console output and input code page to UTF-8 (65001) to ensure proper rendering of unicode box-drawing characters
+    SetConsoleOutputCP(65001);
+    SetConsoleCP(65001);
+#endif
+
     loadEnvFile();
     SimulatorUI simulator;
     simulator.run();
