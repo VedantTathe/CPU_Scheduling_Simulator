@@ -145,6 +145,11 @@ private:
     void runMultiCoreSimulation();
 
     /**
+     * @brief Automatically analyze and run the optimal scheduling algorithm.
+     */
+    void runAdaptiveSimulation();
+
+    /**
      * @brief Clear screen (cross-platform).
      */
     void clearScreen() const;

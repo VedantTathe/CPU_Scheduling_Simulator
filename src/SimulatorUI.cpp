@@ -4,6 +4,7 @@
 #include "CPURuntime.h"
 #include "SchedulerRegistry.h"
 #include "ReportGenerator.h"
+#include "AdaptiveSchedulerAnalyzer.h"
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -11,13 +12,78 @@
 #include <limits>
 #include <algorithm>
 #include <cstdlib>
+#include <filesystem>
+#include <vector>
+
+#ifdef _WIN32
+#include <windows.h>
+static std::string getExeDir() {
+    char buffer[MAX_PATH];
+    GetModuleFileNameA(NULL, buffer, MAX_PATH);
+    std::string pos(buffer);
+    size_t lastSlash = pos.find_last_of("\\/");
+    if (lastSlash != std::string::npos) {
+        return pos.substr(0, lastSlash);
+    }
+    return "";
+}
+#else
+#include <limits.h>
+#include <unistd.h>
+static std::string getExeDir() {
+    char buffer[PATH_MAX];
+    ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
+    if (len != -1) {
+        buffer[len] = '\0';
+        std::string pos(buffer);
+        size_t lastSlash = pos.find_last_of("/");
+        if (lastSlash != std::string::npos) {
+            return pos.substr(0, lastSlash);
+        }
+    }
+    return "";
+}
+#endif
 
 SimulatorUI::SimulatorUI()
     : contextSwitchEnabledSetting(true),
       contextSwitchDelaySetting(1),
       contextSwitchRealTimeDelaySetting(200),
       numCoresSetting(2) {
-    pluginManager.scanPlugins("./plugins");
+    
+    // We scan several search paths for the plugins folder to ensure maximum robustness
+    // across different working directories.
+    std::vector<std::string> searchPaths = {
+        "./plugins",
+        "../plugins",
+        "../../plugins",
+        "../../../plugins"
+    };
+
+    std::string exeDir = getExeDir();
+    if (!exeDir.empty()) {
+        searchPaths.push_back(exeDir + "/plugins");
+        searchPaths.push_back(exeDir + "/../plugins");
+        searchPaths.push_back(exeDir + "/../../plugins");
+        searchPaths.push_back(exeDir + "/../../../plugins");
+    }
+
+    // Keep track of normalized paths we've already scanned to avoid scanning same folder multiple times
+    std::vector<std::string> scannedPaths;
+
+    for (const auto& path : searchPaths) {
+        try {
+            if (std::filesystem::exists(path) && std::filesystem::is_directory(path)) {
+                std::string absolutePath = std::filesystem::absolute(path).lexically_normal().string();
+                if (std::find(scannedPaths.begin(), scannedPaths.end(), absolutePath) == scannedPaths.end()) {
+                    pluginManager.scanPlugins(path);
+                    scannedPaths.push_back(absolutePath);
+                }
+            }
+        } catch (...) {
+            // Ignore filesystem exceptions on individual non-existent paths
+        }
+    }
 }
 
 void SimulatorUI::run() {
@@ -311,10 +377,11 @@ void SimulatorUI::runSimulation() {
 
     std::cout << "1. Run Single Algorithm (Standard)" << std::endl;
     std::cout << "2. Compare All Algorithms (Standard)" << std::endl;
-    std::cout << "3. Run Multi-Core Live Simulation" << std::endl;
-    std::cout << "4. Configure Context Switch Settings" << std::endl;
-    std::cout << "5. Back to Main Menu" << std::endl;
-    std::cout << "\nSelect option (1-5): ";
+    std::cout << "3. Run Adaptive Simulation (Auto-Select)" << std::endl;
+    std::cout << "4. Run Multi-Core Live Simulation" << std::endl;
+    std::cout << "5. Configure Context Switch Settings" << std::endl;
+    std::cout << "6. Back to Main Menu" << std::endl;
+    std::cout << "\nSelect option (1-6): ";
 
     std::string choice;
     if (!std::getline(std::cin, choice)) return;
@@ -327,11 +394,13 @@ void SimulatorUI::runSimulation() {
     } else if (choice == "2") {
         runAllAlgorithmsComparison();
     } else if (choice == "3") {
-        runMultiCoreSimulation();
+        runAdaptiveSimulation();
     } else if (choice == "4") {
+        runMultiCoreSimulation();
+    } else if (choice == "5") {
         configureContextSwitchSettings();
         runSimulation(); // Redraw menu after configuring
-    } else if (choice == "5") {
+    } else if (choice == "6") {
         return;
     } else {
         std::cout << "❌ Invalid choice." << std::endl;
@@ -679,4 +748,48 @@ void SimulatorUI::configureContextSwitchSettings() {
     std::cout << " - Simulation Delay: " << contextSwitchDelaySetting << " units" << std::endl;
     std::cout << " - Real-Time Delay: " << contextSwitchRealTimeDelaySetting << " ms" << std::endl;
     waitForUser();
+}
+
+void SimulatorUI::runAdaptiveSimulation() {
+    clearScreen();
+    Utils::printHeader("Adaptive Scheduler Selection (Auto-Select)");
+
+    if (processes.empty()) {
+        std::cout << "❌ ERROR: No processes available to schedule." << std::endl;
+        waitForUser();
+        return;
+    }
+
+    std::cout << "[Adaptive Engine] Analyzing active process workload..." << std::endl;
+
+    AdaptiveSchedulerAnalyzer analyzer;
+    std::string explanation;
+    std::string recommendedAlgo = analyzer.analyzeAndSelect(processes, explanation);
+
+    if (recommendedAlgo.empty()) {
+        std::cout << "❌ ERROR: Failed to recommend a valid scheduling algorithm." << std::endl;
+        waitForUser();
+        return;
+    }
+
+    // Display beautiful ASCII Selection Summary Box
+    std::cout << "\n+-------------------------------------------------------------------------------+" << std::endl;
+    std::cout << "|                     ADAPTIVE SCHEDULER SELECTION SUMMARY                      |" << std::endl;
+    std::cout << "+-------------------------------------------------------------------------------+" << std::endl;
+    std::cout << "  Recommended Algorithm: " << "\033[1m\033[32m" << recommendedAlgo << "\033[0m" << std::endl;
+    std::cout << "  Reasoning & Analysis:  " << std::endl;
+    
+    // Split the explanation by newlines and print nicely
+    std::istringstream iss(explanation);
+    std::string line;
+    while (std::getline(iss, line)) {
+        std::cout << "    " << line << std::endl;
+    }
+    std::cout << "+-------------------------------------------------------------------------------+\n" << std::endl;
+
+    std::cout << "Press Enter to start simulation with recommended algorithm [" << recommendedAlgo << "]...";
+    std::string dummy;
+    std::getline(std::cin, dummy);
+
+    executeSingleAlgorithm(recommendedAlgo);
 }

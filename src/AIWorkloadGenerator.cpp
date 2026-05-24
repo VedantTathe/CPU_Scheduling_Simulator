@@ -1,5 +1,6 @@
 #include "AIWorkloadGenerator.h"
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <algorithm>
 #include <regex>
@@ -144,30 +145,46 @@ std::vector<Process> AIWorkloadGenerator::generateOfflineWorkload(const std::str
 }
 
 std::string AIWorkloadGenerator::callDeepSeekAPI(const std::string& prompt, const std::string& apiKey) {
-    // 1. Clean the prompt of unsafe shell characters
+    // 1. Prepare prompt for JSON inclusion by escaping backslashes and double quotes
     std::string safePrompt = prompt;
-    safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '"'), safePrompt.end());
-    safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '\\'), safePrompt.end());
-    safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '`'), safePrompt.end());
-    safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '\n'), safePrompt.end());
+    safePrompt = std::regex_replace(safePrompt, std::regex("\\\\"), "\\\\");
+    safePrompt = std::regex_replace(safePrompt, std::regex("\""), "\\\"");
 
-    // 2. Build the curl system command
-    // We request the model to return a raw JSON list of processes with properties: pid, name, arrival, burst, priority.
+    // 2. Build the JSON structure and write to a temporary file
     std::string url = "https://api.deepseek.com/chat/completions";
+    std::string tempFile = ".temp_ds_payload.json";
     
-    std::ostringstream jsonStream;
-    jsonStream << "{\\\"model\\\":\\\"deepseek-chat\\\",\\\"messages\\\":[{\\\"role\\\":\\\"user\\\",\\\"content\\\":\\\"Generate a valid raw JSON array of realistic processes for: '" 
-               << safePrompt << "'. Format: [ {\\\\\\\"pid\\\\\\\":1, \\\\\\\"name\\\\\\\":\\\\\\\"GameEngine\\\\\\\", \\\\\\\"arrival\\\\\\\":0, \\\\\\\"burst\\\\\\\":8, \\\\\\\"priority\\\\\\\":1} ]. You MUST strictly generate the exact number of processes specified in the prompt if a quantity is requested (e.g., 'gen 4' -> generate exactly 4 processes). If no quantity is specified, generate between 5 to 8 processes. Only return the JSON array, no markdown wrappers, no backticks, no comments, no extra text.\\\"}],\\\"temperature\\\":0.2}";
-    
+    std::ofstream outFile(tempFile);
+    if (!outFile.is_open()) {
+        std::cerr << "❌ [AIWorkloadGenerator] Failed to create temp payload file!" << std::endl;
+        return "";
+    }
+
+    outFile << "{"
+            << "\"model\":\"deepseek-chat\","
+            << "\"messages\":[{"
+            << "\"role\":\"user\","
+            << "\"content\":\"Generate a valid raw JSON array of realistic processes for: '" << safePrompt << "'. "
+            << "Format: [ {\\\"pid\\\":1, \\\"name\\\":\\\"GameEngine\\\", \\\"arrival\\\":0, \\\"burst\\\":8, \\\"priority\\\":1} ]. "
+            << "You MUST strictly generate the exact number of processes specified in the prompt if a quantity is requested (e.g., 'gen 4' -> generate exactly 4 processes). "
+            << "If no quantity is specified, generate between 5 to 8 processes. "
+            << "Only return the JSON array, no markdown wrappers, no backticks, no comments, no extra text.\""
+            << "}],"
+            << "\"temperature\":0.2"
+            << "}";
+    outFile.close();
+
+    // 3. Build the curl system command using the temporary file payload
     std::string cmd = "curl -s -X POST \"" + url + "\" ";
     cmd += "-H \"Content-Type: application/json\" ";
     cmd += "-H \"Authorization: Bearer " + apiKey + "\" ";
-    cmd += "-d \"" + jsonStream.str() + "\"";
+    cmd += "-d @\"" + tempFile + "\"";
 
-    // 3. Open pipeline
+    // 4. Open pipeline
     FILE* fp = popen(cmd.c_str(), "r");
     if (!fp) {
         std::cerr << "❌ [AIWorkloadGenerator] Failed to open curl subprocess pipeline!" << std::endl;
+        std::remove(tempFile.c_str());
         return "";
     }
 
@@ -177,6 +194,7 @@ std::string AIWorkloadGenerator::callDeepSeekAPI(const std::string& prompt, cons
         result += buffer;
     }
     pclose(fp);
+    std::remove(tempFile.c_str());
     return result;
 }
 

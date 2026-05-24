@@ -35,6 +35,7 @@ set(SOURCES
     src/SchedulerRegistry.cpp
     src/PluginManager.cpp
     src/AIWorkloadGenerator.cpp
+    src/AdaptiveSchedulerAnalyzer.cpp
     algorithms/FCFS.cpp
     algorithms/SJF.cpp
     algorithms/PriorityScheduler.cpp

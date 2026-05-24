@@ -1,6 +1,7 @@
 #include "Comparison.h"
 #include "Utils.h"
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <algorithm>
 #include <sstream>
@@ -12,6 +13,41 @@
 #define popen _popen
 #define pclose _pclose
 #endif
+
+// Helper to extract JSON string fields robustly, handling escaped characters and spacing variations
+static std::string extractJSONStringField(const std::string& json, const std::string& fieldName) {
+    size_t pos = json.find("\"" + fieldName + "\"");
+    if (pos == std::string::npos) {
+        return "";
+    }
+    pos = json.find(":", pos + fieldName.length() + 2);
+    if (pos == std::string::npos) {
+        return "";
+    }
+    pos = json.find("\"", pos + 1);
+    if (pos == std::string::npos) {
+        return "";
+    }
+    size_t start = pos + 1;
+    std::string value = "";
+    for (size_t i = start; i < json.length(); ++i) {
+        if (json[i] == '\\') {
+            if (i + 1 < json.length()) {
+                char c = json[i + 1];
+                if (c == 'n') value += '\n';
+                else if (c == 't') value += '\t';
+                else if (c == 'r') value += '\r';
+                else value += c;
+                i++;
+            }
+        } else if (json[i] == '"') {
+            break; // End of string
+        } else {
+            value += json[i];
+        }
+    }
+    return value;
+}
 
 
 void AlgorithmComparison::addScheduler(Scheduler* scheduler, const std::vector<Process>& processes) {
@@ -433,19 +469,12 @@ std::string AlgorithmComparison::getAIExplanation() const {
         
         std::string apiResponse = queryDeepSeekAIExplanation(promptStream.str(), apiKey);
         if (!apiResponse.empty()) {
-            // Extract the text content from DeepSeek's JSON chat.completion response
-            size_t startText = apiResponse.find("\"content\": \"");
-            if (startText != std::string::npos) {
-                startText += 12;
-                size_t endText = apiResponse.find("\"", startText);
-                if (endText != std::string::npos && endText > startText) {
-                    std::string explanation = apiResponse.substr(startText, endText - startText);
-                    // Unescape quotes and newlines
-                    explanation = std::regex_replace(explanation, std::regex("\\\\n"), "\n");
-                    explanation = std::regex_replace(explanation, std::regex("\\\\\""), "\"");
-                    explanation = std::regex_replace(explanation, std::regex("\\\\\\\\"), "\\");
-                    return "\033[32m🚀 [DeepSeek AI Deep Analysis]\033[0m\n" + explanation;
-                }
+            std::string explanation = extractJSONStringField(apiResponse, "content");
+            if (explanation.empty()) {
+                explanation = extractJSONStringField(apiResponse, "text");
+            }
+            if (!explanation.empty()) {
+                return "\033[32m🚀 [DeepSeek AI Deep Analysis]\033[0m\n" + explanation;
             }
         }
         std::cout << "\033[33m⚠️ [AI Explanation] DeepSeek API query failed or returned invalid JSON. Falling back to offline rule-based analysis...\033[0m" << std::endl;
@@ -455,24 +484,44 @@ std::string AlgorithmComparison::getAIExplanation() const {
 }
 
 std::string AlgorithmComparison::queryDeepSeekAIExplanation(const std::string& prompt, const std::string& apiKey) const {
+    // 1. Prepare prompt for JSON inclusion by escaping backslashes, double quotes, and newlines
     std::string safePrompt = prompt;
-    safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '"'), safePrompt.end());
-    safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '\\'), safePrompt.end());
-    safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '`'), safePrompt.end());
-    safePrompt.erase(std::remove(safePrompt.begin(), safePrompt.end(), '\n'), safePrompt.end());
+    safePrompt = std::regex_replace(safePrompt, std::regex("\\\\"), "\\\\");
+    safePrompt = std::regex_replace(safePrompt, std::regex("\""), "\\\"");
+    safePrompt = std::regex_replace(safePrompt, std::regex("\n"), "\\n");
 
+    // 2. Build the JSON structure and write to a temporary file
     std::string url = "https://api.deepseek.com/chat/completions";
+    std::string tempFile = ".temp_comp_payload.json";
     
-    std::ostringstream jsonStream;
-    jsonStream << "{\\\"model\\\":\\\"deepseek-chat\\\",\\\"messages\\\":[{\\\"role\\\":\\\"user\\\",\\\"content\\\":\\\"" << safePrompt << "\\\"}],\\\"temperature\\\":0.2}";
-    
+    std::ofstream outFile(tempFile);
+    if (!outFile.is_open()) {
+        std::cerr << "❌ [Comparison] Failed to create temp payload file!" << std::endl;
+        return "";
+    }
+
+    outFile << "{"
+            << "\"model\":\"deepseek-chat\","
+            << "\"messages\":[{"
+            << "\"role\":\"user\","
+            << "\"content\":\"" << safePrompt << "\""
+            << "}],"
+            << "\"temperature\":0.2"
+            << "}";
+    outFile.close();
+
+    // 3. Build the curl system command using the temporary file payload
     std::string cmd = "curl -s -X POST \"" + url + "\" ";
     cmd += "-H \"Content-Type: application/json\" ";
     cmd += "-H \"Authorization: Bearer " + apiKey + "\" ";
-    cmd += "-d \"" + jsonStream.str() + "\"";
+    cmd += "-d @\"" + tempFile + "\"";
 
+    // 4. Open pipeline
     FILE* fp = popen(cmd.c_str(), "r");
-    if (!fp) return "";
+    if (!fp) {
+        std::remove(tempFile.c_str());
+        return "";
+    }
 
     char buffer[1024];
     std::string result = "";
@@ -480,6 +529,7 @@ std::string AlgorithmComparison::queryDeepSeekAIExplanation(const std::string& p
         result += buffer;
     }
     pclose(fp);
+    std::remove(tempFile.c_str());
     return result;
 }
 
