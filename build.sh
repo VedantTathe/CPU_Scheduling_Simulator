@@ -2,7 +2,7 @@
 
 echo "Compiling CPU Scheduling Simulator..."
 
-g++ main.cpp Scheduler.cpp FCFS.cpp SJF.cpp PriorityScheduler.cpp RoundRobin.cpp -o simulator
+g++ -Iinclude src/main.cpp src/Scheduler.cpp src/FCFS.cpp src/SJF.cpp src/PriorityScheduler.cpp src/RoundRobin.cpp -o simulator
 
 if [ $? -ne 0 ]; then
     echo ""
