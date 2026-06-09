@@ -183,7 +183,7 @@ int main() {
         }
 
         if (scheduler) {
-            clearScreen(); // Clear screen to show fresh results
+            clearScreen(); 
             // Polymorphism in action! Calls the overridden run() method dynamically
             scheduler->run();
             
@@ -193,7 +193,7 @@ int main() {
             
             delete scheduler; // Prevent memory leak
             
-            pauseScreen(); // Let user read the results before looping back to the menu
+            pauseScreen(); 
         }
     }
     
