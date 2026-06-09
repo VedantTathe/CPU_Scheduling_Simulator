@@ -7,7 +7,7 @@ class RoundRobin : public Scheduler {
 private:
     int quantum;
 public:
-    RoundRobin(vector<Process> p, int q);
+    RoundRobin(vector<Process> p, int q, int cs_time = 0);
     void run() override;
 };
 

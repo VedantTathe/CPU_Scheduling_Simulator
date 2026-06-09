@@ -5,7 +5,7 @@
 
 class SJF : public Scheduler {
 public:
-    SJF(vector<Process> p);
+    SJF(vector<Process> p, int cs_time = 0);
     void run() override;
 };
 

@@ -5,7 +5,7 @@
 
 class PriorityScheduler : public Scheduler {
 public:
-    PriorityScheduler(vector<Process> p);
+    PriorityScheduler(vector<Process> p, int cs_time = 0);
     void run() override;
 };
 

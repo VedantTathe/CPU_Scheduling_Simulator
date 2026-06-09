@@ -9,6 +9,7 @@
 #include "SJF.h"
 #include "PriorityScheduler.h"
 #include "RoundRobin.h"
+#include "SRTF.h"
 
 using namespace std;
 
@@ -54,6 +55,24 @@ vector<Process> loadFromFile(string filename) {
     return processes;
 }
 
+void printProcesses(const vector<Process>& processes) {
+    cout << "\n=== Loaded Processes ===\n";
+    if (processes.empty()) {
+        cout << "No processes loaded.\n";
+        return;
+    }
+    cout << "ID\tArrival\tBurst\tPriority\n";
+    cout << "---------------------------------\n";
+    for (const auto& p : processes) {
+        cout << p.getId() << "\t" 
+             << p.getArrivalTime() << "\t" 
+             << p.getBurstTime() << "\t" 
+             << p.getPriority() << "\n";
+    }
+    cout << "---------------------------------\n";
+}
+
+
 int main() {
     clearScreen();
     vector<Process> processes;
@@ -65,6 +84,13 @@ int main() {
     cout << "Select option: ";
     cin >> choice;
     
+    if (cin.fail()) {
+        cin.clear();
+        string dummy;
+        getline(cin, dummy);
+        cout << "Invalid input! Defaulting to Load from input.txt\n";
+        choice = 1;
+    }
     if (choice == 1) {
         processes = loadFromFile("input.txt");
         if (processes.empty()) return 1;
@@ -92,33 +118,62 @@ int main() {
     }
     
     pauseScreen();
+    
+    int cs_time = 0;
+    clearScreen();
+    cout << "Enter Context Switch Overhead Time (default 0): ";
+    cin >> cs_time;
+    if (cin.fail()) {
+        cin.clear();
+        string dummy;
+        getline(cin, dummy);
+        cs_time = 0;
+    }
 
     while (true) {
         clearScreen();
         cout << "\n=== Main Menu ===\n";
-        cout << "1. FCFS\n";
-        cout << "2. SJF (Non-Preemptive)\n";
-        cout << "3. Priority Scheduling\n";
-        cout << "4. Round Robin\n";
-        cout << "5. Exit\n";
+        cout << "1. View Loaded Processes\n";
+        cout << "2. FCFS\n";
+        cout << "3. SJF (Non-Preemptive)\n";
+        cout << "4. Priority Scheduling\n";
+        cout << "5. Round Robin\n";
+        cout << "6. SRTF (Preemptive SJF)\n";
+        cout << "7. Exit\n";
         cout << "Select Algorithm: ";
         cin >> choice;
+        
+        if (cin.fail()) {
+            cin.clear();
+            string dummy;
+            getline(cin, dummy);
+            cout << "Invalid input! Please enter a number.\n";
+            pauseScreen();
+            continue;
+        }
         
         // Demonstrating POLYMORPHISM: Base class pointer holds derived class object
         Scheduler* scheduler = nullptr;
         
         if (choice == 1) {
-            scheduler = new FCFS(processes);
+            clearScreen();
+            printProcesses(processes);
+            pauseScreen();
+            continue;
         } else if (choice == 2) {
-            scheduler = new SJF(processes);
+            scheduler = new FCFS(processes, cs_time);
         } else if (choice == 3) {
-            scheduler = new PriorityScheduler(processes);
+            scheduler = new SJF(processes, cs_time);
         } else if (choice == 4) {
+            scheduler = new PriorityScheduler(processes, cs_time);
+        } else if (choice == 5) {
             int quantum;
             cout << "Enter Time Quantum: ";
             cin >> quantum;
-            scheduler = new RoundRobin(processes, quantum);
-        } else if (choice == 5) {
+            scheduler = new RoundRobin(processes, quantum, cs_time);
+        } else if (choice == 6) {
+            scheduler = new SRTF(processes, cs_time);
+        } else if (choice == 7) {
             cout << "Exiting...\n";
             break;
         } else {

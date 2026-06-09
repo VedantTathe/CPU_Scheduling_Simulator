@@ -5,7 +5,7 @@
 
 class FCFS : public Scheduler {
 public:
-    FCFS(vector<Process> p);
+    FCFS(vector<Process> p, int cs_time = 0);
     void run() override;
 };
 

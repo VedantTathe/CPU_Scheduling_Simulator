@@ -14,8 +14,10 @@ protected:
     vector<string> gantt_order;
     vector<int> gantt_time;
 
+    int context_switch_time;
+
 public:
-    Scheduler(vector<Process> p);
+    Scheduler(vector<Process> p, int cs_time = 0);
     virtual ~Scheduler() = default;
     
     // Pure virtual function - must be implemented by derived classes

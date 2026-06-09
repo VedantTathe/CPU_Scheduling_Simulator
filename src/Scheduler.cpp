@@ -5,7 +5,7 @@
 
 using namespace std;
 
-Scheduler::Scheduler(vector<Process> p) : processes(p) {}
+Scheduler::Scheduler(vector<Process> p, int cs_time) : processes(p), context_switch_time(cs_time) {}
 
 void Scheduler::printMetrics() {
     int n = processes.size();
@@ -45,20 +45,23 @@ void Scheduler::printGanttChart() {
     if (gantt_order.empty()) return;
 
     cout << "\n--- Gantt Chart ---\n";
-    for (size_t i = 0; i < gantt_order.size(); i++) cout << "--------";
+    for (size_t i = 0; i < gantt_order.size(); i++) cout << "---------";
     cout << "\n|";
     
     for (size_t i = 0; i < gantt_order.size(); i++) {
-        cout << "  " << gantt_order[i] << "\t|";
+        // Create a formatted string of length 8 before the |
+        string block = "  " + gantt_order[i];
+        cout << left << setw(8) << setfill(' ') << block << "|";
     }
     cout << "\n";
     
-    for (size_t i = 0; i < gantt_order.size(); i++) cout << "--------";
+    for (size_t i = 0; i < gantt_order.size(); i++) cout << "---------";
     cout << "\n";
     
-    cout << gantt_time[0];
+    // Print the time aligned with the | boundaries
+    cout << left << setw(9) << gantt_time[0];
     for (size_t i = 1; i < gantt_time.size(); i++) {
-        cout << "\t" << gantt_time[i];
+        cout << left << setw(9) << gantt_time[i];
     }
     cout << "\n\n";
 }

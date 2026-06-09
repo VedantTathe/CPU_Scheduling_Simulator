@@ -49,3 +49,15 @@ This document is a quick, high-level summary of exactly how the core C++ logic w
 5. Execute it for either the `quantum` limit OR its `remaining_time` (whichever is smaller).
 6. **CRITICAL STEP:** Before putting the paused process back in the queue, scan for any *brand new* processes that arrived during the execution window and push them into the queue first!
 7. If the current process has `remaining_time > 0`, push it to the back of the queue. If it is `0`, mark it as completed and calculate metrics.
+
+---
+
+### 5. Shortest Remaining Time First (SRTF) - Preemptive
+**Core Concept:** The preemptive version of SJF. At *every single unit of time*, the CPU evaluates if a newly arrived process has a shorter remaining burst time than the currently running process. If so, a context switch happens!
+**C++ Implementation:**
+1. Use a `while(completed != total_processes)` loop representing each clock cycle.
+2. Inside, use a `for` loop to scan **all** processes that have arrived and are not completed to find the one with the smallest `remaining_time`.
+3. If the process with the smallest remaining time is different from the currently running process, a **preemption (context switch)** occurs and the Gantt chart is updated.
+4. Execute the chosen process for exactly **1 unit of time** (`current_time++` and `remaining_time--`).
+5. Check if its `remaining_time` has reached `0`. If so, mark it as completed and calculate metrics.
+6. Repeat for the next time unit.
